@@ -1,0 +1,17 @@
+📂 Core Resource Categories (Essential)
+Event Resources – Presentations, event recordings, brochures, and schedules.
+Study Materials – Notes, research papers, coding tutorials, problem sets.
+Club Documents – Guidelines, meeting minutes, club constitutions.
+Forms & Templates – Registration forms, feedback forms, proposal templates.
+Recorded Sessions – Webinars, guest lectures, training sessions.
+Internship & Career Resources – Resume guides, interview tips, industry reports.
+📁 Additional Enhancements (For Better Experience)
+Categorized Storage – Organize resources by topic, club, event, or user role.
+Search & Filters – Let users filter by type (PDF, video, link, document).
+Download & Preview – Allow previewing before downloading.
+Resource Requests – Users can request missing materials.
+🚀 Advanced Features (Future Scope)
+AI-Based Recommendations – Suggest related resources based on user activity.
+Version Control – Track updates on frequently modified documents.
+Collaboration Tools – Allow multiple users to upload, edit, and discuss resources.
+Restricted Access Controls – Define who can view/download specific resources.
