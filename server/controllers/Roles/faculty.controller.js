@@ -3,17 +3,12 @@ import { StudentAlumni } from "../../models/Roles/StudentAlumni.Model.js";
 import { User } from "../../models/User.Model.js";
 
 export const createClubFn = async (req, res) => {
-	const {
-		clubName,
-		shortName,
-		motto,
-		description,
-		collegeId,
-		presidentId,
-		facultyId,
-	} = req.body;
+	const { clubName, shortName, motto, description, collegeId, presidentId } =
+		req.body;
+	const { facultyId } = req.params;
 
 	console.log("Club Data for creation", req.body);
+	console.log("Faculty Id", facultyId);
 	if (!clubName || !presidentId || !facultyId || !collegeId) {
 		return res.status(400).json({ message: "Missing required fields" });
 	}
@@ -88,18 +83,18 @@ export const assignRoleFn = async (req, res) => {
 		const user = await User.findById(userId);
 		if (!user) {
 			return res.json({
-				messaege:"User not found",
-				success:false
-			})
+				messaege: "User not found",
+				success: false,
+			});
 		}
 
 		// Validate club
 		const club = await Club.findById(clubId);
 		if (!club) {
 			return res.json({
-				messaege:"Club not found",
-				success:false
-			})
+				messaege: "Club not found",
+				success: false,
+			});
 		}
 
 		// Check if user already has a role in the club

@@ -25,14 +25,19 @@ const Login = () => {
 				"http://localhost:3002/auth/login",
 				formData
 			);
+			localStorage.setItem("token", response.data.token);
 			toast.success(response.data.message);
-			dispatch(setAuthUser(response.data.user));
-			if (response.data.success) {
-			}
-			const role = response.data.user.role;
 
-			console.log(role);
-			navigate(`/${role}`);
+			// Store token in localStorage
+
+			// Save user details in state
+			dispatch(setAuthUser(response.data.user));
+
+			if (response.data.success) {
+				const role = response.data.user.role;
+				console.log(role);
+				navigate(`/${role.toLowerCase()}`);
+			}
 		} catch (error) {
 			console.error("Login failed:", error.response?.data || error.message);
 			toast.error(error.response?.data.message || "Login failed");

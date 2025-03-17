@@ -1,7 +1,7 @@
 import React from "react";
 
 const Clubs = () => {
-	return <div>Here we will showcase some of the clubs with filter options</div>;
+	return <div>Here a admin can see all types of reports</div>;
 };
 
 export default Clubs;

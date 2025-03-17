@@ -4,21 +4,19 @@ const authSlice = createSlice({
 	name: "auth",
 	initialState: {
 		user: null,
-		userProfile: null,
 		selectedUser: null,
+		userClub: null,
 	},
 	reducers: {
 		setAuthUser: (state, action) => {
 			state.user = action.payload;
 			console.log("Redux state updated:", state.user);
 		},
-
-		setUserProfile: (state, action) => {
-			state.userProfile = action.payload;
-		},
-		
 		setSelectedUser: (state, action) => {
 			state.selectedUser = action.payload;
+		},
+		setUserClub: (state, action) => {
+			state.userClub = action.payload;
 		},
 		logoutUser: (state) => {
 			state.user = null;
@@ -26,6 +24,11 @@ const authSlice = createSlice({
 	},
 });
 
-export const { setAuthUser, setUserProfile, setSelectedUser, logoutUser } =
-	authSlice.actions;
+export const {
+	setAuthUser,
+	setUserProfile,
+	setSelectedUser,
+	logoutUser,
+	setUserClub,
+} = authSlice.actions;
 export default authSlice.reducer;

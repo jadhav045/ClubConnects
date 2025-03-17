@@ -1,12 +1,22 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import PostsList from "../../../post/PostList";
+import RightDetails from "../../../post/RightDetails";
 
 const Feed = () => {
-	const { user } = useSelector((store) => store.auth);
+	const { posts } = useSelector((store) => store.post);
+
 	return (
-		<div>
-			Here we will take care of the Feed
-			{user.prn || " no "}
+		<div className="flex justify-between p-4">
+			{/* Posts List Section */}
+			<div className="w-3/4">
+				<PostsList />
+			</div>
+
+			{/* Right Sidebar (Additional Info) */}
+			<div className="w-1/4">
+				<RightDetails posts={posts} />
+			</div>
 		</div>
 	);
 };

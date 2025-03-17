@@ -17,7 +17,7 @@ const Logout = () => {
 			toast.success("Logout successful");
 			navigate("/login"); // Navigate to the login page
 		} catch (error) {
-			console.error("Logout failed:", error.response?.data || error.message);
+			// console.error("Logout failed:", error.response?.data || error.message);
 			toast.error("Logout failed");
 		}
 	};

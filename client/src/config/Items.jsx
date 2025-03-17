@@ -2,6 +2,7 @@ import { useSelector } from "react-redux";
 
 export const getNavbarItems = () => {
 	const { user } = useSelector((store) => store.auth);
+	const role = user.role.toLowerCase();
 
 	if (!user) {
 		return [
@@ -14,11 +15,11 @@ export const getNavbarItems = () => {
 
 	let items = [
 		// { name: "Home", href: `/${user.role}/home` }, // Modified here
-		{ name: "About Us", href: `/${user.role}/about` }, // Modified here
-		{ name: "Events", href: `/${user.role}/events` }, // Modified here
-		{ name: "Clubs", href: `/${user.role}/clubs` }, // Modified here
-		{ name: "Discussions", href: `/${user.role}/discussions` }, // Modified here
-		{ name: "Resources", href: `/${user.role}/resources` }, // Modified here
+		{ name: "About Us", href: `/${role}/about` }, // Modified here
+		{ name: "Events", href: `/${role}/events` }, // Modified here
+		{ name: "Clubs", href: `/${role}/clubs` }, // Modified here
+		{ name: "Discussions", href: `/${role}/discussions` }, // Modified here
+		{ name: "Resources", href: `/${role}/resources` }, // Modified here
 	];
 
 	// if (user.role === "admin") {
@@ -27,50 +28,48 @@ export const getNavbarItems = () => {
 
 	return items;
 };
-
 export const getSidebarItems = () => {
 	const { user } = useSelector((store) => store.auth);
 
 	if (!user) return [];
+	const isPresidant = user?.profileId?.clubsJoined?.some(
+		(club) => club.role === "President"
+	);
+	console.log(isPresidant);
+	const role = user.role.toLowerCase();
 
 	let items = [
-		{ name: "Feed", href: `/${user.role}/feed`, icon: "📢" },
-		{ name: "Profile", href: `/${user.role}/profile`, icon: "👤" },
-		{ name: "Chat", href: `/${user.role}/chat`, icon: "💬" },
-		{ name: "Notifications", href: `/${user.role}/notifications`, icon: "🔔" },
+		{ name: "Feed", href: `/${role}/feed`, icon: "📢" },
+		{ name: "Profile", href: `/${role}/profile`, icon: "👤" },
+		{ name: "Chat", href: `/${role}/chat`, icon: "💬" },
+		{ name: "Notifications", href: `/${role}/notifications`, icon: "🔔" },
 	];
 
-	// check here does user is president of some club or not
-	// if yes then popuate him the other club options 
-	switch (user.role) {
-		case "Admin":
+	switch (role) {
+		case "admin":
 			items.push({ name: "Manage Users", href: "/admin/users", icon: "⚙️" });
 			items.push({ name: "Reports", href: "/admin/reports", icon: "📊" });
+			items.push({
+				name: "Institute Management",
+				href: "/admin/institute",
+				icon: "📊",
+			});
 			break;
 
-		case "Faculty":
-			items.push({ name: "Manage Clubs", href: "/faculty/clubs", icon: "🏫" });
+		case "faculty":
+			items.push({
+				name: "Club Management",
+				href: "/faculty/manage/clubs",
+				icon: "🏫",
+			});
 			items.push({
 				name: "Manage Events",
-				href: "/faculty/events",
+				href: "/faculty/manage/events",
 				icon: "📅",
 			});
 			break;
-// here will be change 
-		case "Club":
-			items.push({
-				name: "Club Dashboard",
-				href: "/club/dashboard",
-				icon: "🎭",
-			});
-			items.push({
-				name: "Event Management",
-				href: "/club/events",
-				icon: "📆",
-			});
-			break;
 
-		case "Alumni":
+		case "alumni":
 			items.push({
 				name: "Alumni Network",
 				href: "/alumni/network",
@@ -83,7 +82,7 @@ export const getSidebarItems = () => {
 			});
 			break;
 
-		case "Student":
+		case "student":
 			items.push({
 				name: "My Clubs",
 				href: "/student/joined/clubs",
@@ -94,11 +93,21 @@ export const getSidebarItems = () => {
 				href: "/student/opportunities",
 				icon: "🚀",
 			});
-			items.push({
-				name: "Mentor By",
-				href: "/student/mentorby",
-				icon: "🚀",
-			});
+			items.push({ name: "Mentor By", href: "/student/mentorby", icon: "🚀" });
+
+			if (isPresidant) {
+				items.push({
+					name: "Club Dashboard",
+					href: "/student/manage/club",
+					icon: "🎭",
+				});
+				items.push({
+					name: "Event Management",
+					href: "/student/manage/events",
+					icon: "📆",
+				});
+
+			}
 			break;
 	}
 

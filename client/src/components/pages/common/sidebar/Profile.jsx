@@ -1,165 +1,172 @@
-import React, { useState } from "react";
+import React from "react";
 import {
-	User,
 	Mail,
 	Phone,
-	MapPin,
-	Link,
 	Calendar,
-	Save,
-	Edit,
+	MapPin,
+	Award,
+	Globe,
+	FileText,
 } from "lucide-react";
+import StudentAlumniProfile from "../profile/StudentAlumniProfile";
+import FacultyProfile from "../profile/FacultyProfile";
 
+const roleData = {
+	department: "Computer Science",
+	designation: "Associate Professor",
+	dateOfJoining: "2015-08-21",
+	qualifications: ["PhD in Machine Learning", "MSc in Computer Science"],
+	researchAreas: ["Artificial Intelligence", "Data Science", "Cybersecurity"],
+	teachingSubjects: ["Algorithms", "Database Systems", "Cloud Computing"],
+	createaClub: [
+		{
+			_id: "64a8f1c2f8e4c9b2a0c1e4b5",
+			name: "AI Innovators Club",
+		},
+		{
+			_id: "64a8f1c2f8e4c9b2a0c1e4b6",
+			name: "Cybersecurity Society",
+		},
+	],
+	publications: [
+		{
+			title: "Deep Learning for Image Recognition",
+			journal: "Journal of AI Research",
+			date: "2020-05-15",
+			url: "https://example.com/publication1",
+		},
+		{
+			title: "Blockchain in Higher Education",
+			journal: "IEEE Transactions on Education",
+			date: "2019-09-10",
+			url: "https://example.com/publication2",
+		},
+	],
+	skills: ["Python", "TensorFlow", "MongoDB", "React"],
+	announcements: [
+		{
+			_id: "64a8f1c2f8e4c9b2a0c1e4b7",
+			title: "Upcoming Hackathon Event",
+		},
+		{
+			_id: "64a8f1c2f8e4c9b2a0c1e4b8",
+			title: "Guest Lecture on Quantum Computing",
+		},
+	],
+	userId: "64a8f1c2f8e4c9b2a0c1e4b9",
+	college: "64a8f1c2f8e4c9b2a0c1e4c0",
+	subRole: "Head of Department",
+	createdAt: "2023-01-01T10:00:00Z",
+	updatedAt: "2023-01-15T15:30:00Z",
+};
 
-
-const Profile = ({user}) => {
-	const [isEditing, setIsEditing] = useState(false);
-	const [formData, setFormData] = useState({ ...user });
-
-	const handleChange = (e) => {
-		const { name, value } = e.target;
-		setFormData((prev) => ({ ...prev, [name]: value }));
-	};
-
-	const handleSave = () => {
-		// Handle save logic (API call, etc.)
-		setIsEditing(false);
-	};
-
+const Profile = ({ user }) => {
 	return (
-		<div className="p-6 grid gap-6">
-			<div className="shadow-xl rounded-2xl p-6 bg-white">
-				<div className="flex justify-between items-center mb-6">
-					<h2 className="text-2xl font-bold flex items-center gap-2">
-						<User className="w-6 h-6" /> Profile
-					</h2>
-					{isEditing ? (
-						<button
-							onClick={handleSave}
-							className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
-						>
-							<Save className="w-5 h-5" /> Save
-						</button>
-					) : (
-						<button
-							onClick={() => setIsEditing(true)}
-							className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg"
-						>
-							<Edit className="w-5 h-5" /> Edit Profile
-						</button>
-					)}
-				</div>
-
-				<section className="grid grid-cols-2 gap-6">
+		<div className="p-6">
+			{/* Personal Details */}
+			<div className="mb-6">
+				<h2 className="text-2xl font-bold mb-4">Personal Details</h2>
+				<div className="flex items-center gap-6">
+					<img
+						src={user.profilePicture}
+						alt={user.fullName}
+						className="w-32 h-32 rounded-full border"
+					/>
 					<div>
-						<h3 className="text-xl font-semibold flex items-center gap-2">
-							<User className="w-5 h-5" /> Personal Information
-						</h3>
-						{isEditing ? (
-							<input
-								name="fullName"
-								value={formData.fullName}
-								onChange={handleChange}
-								placeholder="Full Name"
-								className="border p-2 w-full rounded-lg"
-							/>
-						) : (
-							<p>{user?.fullName}</p>
-						)}
+						<h3 className="text-xl font-semibold">{user.fullName}</h3>
 						<p className="flex items-center gap-2">
-							<Mail className="w-5 h-5" /> Email: {user.email}
+							<Mail size={16} /> {user.email}
 						</p>
-						<p>PRN: {user.prn}</p>
-						<p>Role: {user.role}</p>
-					</div>
-
-					<div>
-						<h3 className="text-xl font-semibold flex items-center gap-2">
-							<Phone className="w-5 h-5" /> Contact Details
-						</h3>
-						{isEditing ? (
-							<input
-								name="phoneNumber"
-								value={formData.phoneNumber}
-								onChange={handleChange}
-								placeholder="Phone Number"
-								className="border p-2 w-full rounded-lg"
-							/>
-						) : (
-							<p>Phone: {user.phoneNumber}</p>
-						)}
+						<p className="flex items-center gap-2">
+							<FileText size={16} /> PRN: {user.prn}
+						</p>
+						<p className="flex items-center gap-2">
+							<Phone size={16} /> {user.phoneNumber}
+						</p>
+						<p className="flex items-center gap-2">
+							<Calendar size={16} /> {user.dateOfBirth}
+						</p>
 						<p>Gender: {user.gender}</p>
+						<p>Branch: {user.branch}</p>
 						<p className="flex items-center gap-2">
-							<Calendar className="w-5 h-5" /> Date of Birth:{" "}
-							{new Date(user.dateOfBirth).toLocaleDateString()}
+							<MapPin size={16} /> {user.address.street}, {user.address.city},{" "}
+							{user.address.state}, {user.address.zipCode},{" "}
+							{user.address.country}
 						</p>
 					</div>
-				</section>
-
-				<section className="mt-6">
-					<h3 className="text-xl font-semibold flex items-center gap-2">
-						<MapPin className="w-5 h-5" /> Address
-					</h3>
-					{isEditing ? (
-						<textarea
-							name="address"
-							value={formData.address?.street}
-							onChange={handleChange}
-							placeholder="Address"
-							className="border p-2 w-full rounded-lg"
-						/>
-					) : (
-						<p>{`${user.address?.street}, ${user.address?.city}, ${user.address?.state}, ${user.address?.zipCode}, ${user.address?.country}`}</p>
-					)}
-				</section>
-
-				<section className="mt-6">
-					<h3 className="text-xl font-semibold flex items-center gap-2">
-						<Link className="w-5 h-5" /> Social Links
-					</h3>
-					<ul>
-						{isEditing ? (
-							<>
-								<input
-									name="socialLinks.linkedIn"
-									value={formData.socialLinks?.linkedIn || ""}
-									onChange={handleChange}
-									placeholder="LinkedIn URL"
-									className="border p-2 w-full rounded-lg mb-2"
-								/>
-								<input
-									name="socialLinks.twitter"
-									value={formData.socialLinks?.twitter || ""}
-									onChange={handleChange}
-									placeholder="Twitter URL"
-									className="border p-2 w-full rounded-lg mb-2"
-								/>
-								<input
-									name="socialLinks.github"
-									value={formData.socialLinks?.github || ""}
-									onChange={handleChange}
-									placeholder="GitHub URL"
-									className="border p-2 w-full rounded-lg mb-2"
-								/>
-								<input
-									name="socialLinks.personalWebsite"
-									value={formData.socialLinks?.personalWebsite || ""}
-									onChange={handleChange}
-									placeholder="Website URL"
-									className="border p-2 w-full rounded-lg"
-								/>
-							</>
-						) : (
-							<>
-								<li>LinkedIn: {user.socialLinks?.linkedIn}</li>
-								<li>Twitter: {user.socialLinks?.twitter}</li>
-								<li>GitHub: {user.socialLinks?.github}</li>
-								<li>Website: {user.socialLinks?.personalWebsite}</li>
-							</>
-						)}
-					</ul>
-				</section>
+				</div>
 			</div>
+
+			{/* Posts & Saved Posts */}
+			<div className="mb-6">
+				<h2 className="text-2xl font-bold mb-4">Posts & Saved Posts</h2>
+				<p>Total Posts: {user.posts.length}</p>
+				<p>Saved Posts: {user.saved.length}</p>
+			</div>
+
+			{/* Awards */}
+			<div className="mb-6">
+				<h2 className="text-2xl font-bold mb-4">Awards</h2>
+				{user.awards.length > 0 ? (
+					user.awards.map((award, index) => (
+						<div
+							key={index}
+							className="mb-4"
+						>
+							<h3 className="text-lg font-semibold flex items-center gap-2">
+								<Award size={16} /> {award.title}
+							</h3>
+							<p>{award.description}</p>
+							<small className="text-gray-500">Date: {award.date}</small>
+							<hr className="my-4" />
+						</div>
+					))
+				) : (
+					<p>No awards yet</p>
+				)}
+			</div>
+
+			{/* Social Links */}
+			<div>
+				<h2 className="text-2xl font-bold mb-4">Social Links</h2>
+				<p>
+					<a
+						href={user.socialLinks.linkedIn}
+						target="_blank"
+						className="text-blue-500"
+					>
+						LinkedIn
+					</a>
+				</p>
+				<p>
+					<a
+						href={user.socialLinks.twitter}
+						target="_blank"
+						className="text-blue-500"
+					>
+						Twitter
+					</a>
+				</p>
+				<p>
+					<a
+						href={user.socialLinks.github}
+						target="_blank"
+						className="text-blue-500"
+					>
+						GitHub
+					</a>
+				</p>
+				<p>
+					<a
+						href={user.socialLinks.personalWebsite}
+						target="_blank"
+						className="text-blue-500 flex items-center gap-2"
+					>
+						<Globe size={16} /> Personal Website
+					</a>
+				</p>
+			</div>
+			<FacultyProfile faculty={roleData} />
 		</div>
 	);
 };

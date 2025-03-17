@@ -11,10 +11,6 @@ const UserSchema = new mongoose.Schema(
 			match: /.+\@.+\..+/,
 		},
 		password: { type: String, required: true },
-		role: {
-			type: String,
-			enum: ["Student", "Faculty", "Alumni", "Admin"],
-		},
 
 		branch: { type: String },
 		profilePicture: { type: String },
@@ -47,7 +43,7 @@ const UserSchema = new mongoose.Schema(
 				image: { type: String },
 			},
 		],
-		
+
 		socketId: { type: String },
 		notifications: [
 			{
@@ -75,10 +71,38 @@ const UserSchema = new mongoose.Schema(
 			},
 		],
 
+		role: {
+			type: String,
+			enum: ["Student", "Alumni", "Faculty", "Admin"],
+		},
+
 		profileId: {
 			type: mongoose.Schema.Types.ObjectId,
-			refPath: "role",
+			ref: function () {
+				if (this.role === "Student" || this.role === "Alumni") {
+					return "StudentAlumni"; // Both roles reference the same collection
+				}
+
+				return this.role; // Otherwise, reference the exact role collection
+			},
 		},
+
+		appliedOpportunities: [
+			{
+				opportunity: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: "Opportunity",
+				},
+				status: String,
+				stage: Number,
+			},
+		],
+		notifications: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Notification",
+			},
+		],
 		// for only admin
 		createdFaculty: [
 			{

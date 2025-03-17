@@ -21,24 +21,12 @@ const ClubSchema = new mongoose.Schema(
 		logo: { type: String },
 		profilePicture: { type: String },
 
-		contact: {
-			email: {
-				type: String,
-				trim: true,
-				match: [/^\S+@\S+\.\S+$/, "Invalid email format"], // Email validation
-			},
-			phone: {
-				type: String,
-				trim: true,
-				match: [/^\d{10,15}$/, "Invalid phone number"], // Phone validation
-			},
+		socialMedia: {
+			facebook: { type: String, trim: true },
+			instagram: { type: String, trim: true },
+			linkedin: { type: String, trim: true },
+			twitter: { type: String, trim: true }, // Removed extra "A"
 			website: { type: String, trim: true },
-			socialMedia: {
-				facebook: { type: String, trim: true },
-				instagram: { type: String, trim: true },
-				linkedin: { type: String, trim: true },
-				twitter: { type: String, trim: true }, // Removed extra "A"
-			},
 		},
 
 		// **Membership & Structure**
@@ -65,7 +53,7 @@ const ClubSchema = new mongoose.Schema(
 			},
 		],
 
-		advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "Faculty" }],
+		advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 		maxMembers: { type: Number, default: 100 },
 		membershipFee: { type: Number, default: 0 },
 		eligibilityCriteria: { type: String, trim: true },
@@ -89,6 +77,8 @@ const ClubSchema = new mongoose.Schema(
 				image: { type: String },
 			},
 		],
+		posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+		saved: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 
 		// **Events & Activities**
 		events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
@@ -119,6 +109,12 @@ const ClubSchema = new mongoose.Schema(
 			default: "Active",
 			index: true,
 		},
+		requests: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Request",
+			},
+		],
 	},
 	{ timestamps: true }
 );

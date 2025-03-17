@@ -1,68 +1,137 @@
 import mongoose from "mongoose";
 
+const applicantSchema = new mongoose.Schema({
+	student: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: "User",
+		required: true,
+	},
+	resume: {
+		type: String,
+		required: true,
+	},
+	coverLetter: String,
+	appliedAt: {
+		type: Date,
+		default: Date.now,
+	},
+	currentStatus: {
+		type: String,
+		enum: ["PENDING", "SHORTLISTED", "REJECTED", "SELECTED"],
+		default: "PENDING",
+	},
+	currentStage: {
+		type: Number,
+		default: 1,
+	},
+	statusHistory: [
+		{
+			stage: Number,
+			status: String,
+			changedBy: {
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "User",
+			},
+			date: {
+				type: Date,
+				default: Date.now,
+			},
+			feedback: String,
+		},
+	],
+});
+
 const opportunitySchema = new mongoose.Schema(
 	{
-		title: { type: String, required: true, trim: true }, // Opportunity Title
-		description: { type: String, required: true, trim: true }, // Detailed Description
+		title: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		description: {
+			type: String,
+			required: true,
+			trim: true,
+		},
 		opportunityType: {
 			type: String,
-			enum: ["INDUSTRY_PROJECT", "INTERNSHIP", "JOB", "RESEARCH", "OTHER"], // Type of Opportunity
+			enum: ["INDUSTRY_PROJECT", "INTERNSHIP", "JOB", "RESEARCH", "OTHER"],
 			required: true,
 		},
-
 		postedBy: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: "User", // Alumni or Faculty who posted it
+			ref: "User",
 			required: true,
 		},
-
 		userRole: {
 			type: String,
-			enum: ["ALUMNI", "FACULTY"], // Only Alumni or Faculty can post
+			enum: ["Alumni", "Faculty"],
 			required: true,
 		},
-
 		eligibilityCriteria: {
-			minCGPA: { type: Number, min: 0, max: 10 }, // Minimum CGPA Requirement
-			skillsRequired: [{ type: String }], // List of Required Skills
-			graduationYear: [{ type: Number }], // Eligible Graduation Years
-			departments: [{ type: String }], // Eligible Departments (e.g., CSE, ECE, ME)
+			minCGPA: {
+				type: Number,
+				min: 0,
+				max: 10,
+			},
+			skillsRequired: [
+				{
+					type: String,
+				},
+			],
+			graduationYear: [
+				{
+					type: Number,
+				},
+			],
+			departments: [
+				{
+					type: String,
+				},
+			],
 		},
-
-		applicationDeadline: { type: Date, required: true }, // Last Date to Apply
+		applicationDeadline: {
+			type: Date,
+			required: true,
+		},
 		opportunityStatus: {
 			type: String,
 			enum: ["OPEN", "CLOSED"],
 			default: "OPEN",
 		},
-
-		applicants: [
-			{
-				student: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Student who applied
-				resume: { type: String }, // Resume URL
-				coverLetter: { type: String }, // Cover Letter (Optional)
-				appliedAt: { type: Date, default: Date.now }, // Application Timestamp
-				status: {
-					type: String,
-					enum: ["PENDING", "SHORTLISTED", "REJECTED", "SELECTED"],
-					default: "PENDING",
-				},
-			},
-		],
-
+		applicants: [applicantSchema],
+		stages: {
+			type: Number,
+			default: 1,
+			min: 1,
+			max: 5,
+		},
 		attachments: [
 			{
 				fileType: {
 					type: String,
-					enum: ["DOCUMENT", "URL"], // Supporting files (PDFs, Job Descriptions, etc.)
+					enum: ["DOCUMENT", "URL"],
 				},
-				fileUrl: { type: String, required: true },
+				fileUrl: {
+					type: String,
+					required: true,
+				},
 			},
 		],
-
-		createdAt: { type: Date, default: Date.now },
+		registrationForm: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "Form",
+		},
 	},
-	{ timestamps: true }
+	{
+		timestamps: true,
+		index: [
+			{ "eligibilityCriteria.departments": 1 },
+			{ "eligibilityCriteria.graduationYear": 1 },
+			{ "applicants.currentStatus": 1 },
+			{ "applicants.currentStage": 1 },
+		],
+	}
 );
 
 export default mongoose.model("Opportunity", opportunitySchema);

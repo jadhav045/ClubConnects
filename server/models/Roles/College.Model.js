@@ -2,14 +2,15 @@ import mongoose from "mongoose";
 
 const CollegeSchema = new mongoose.Schema(
 	{
+		logo: { type: String },
+		description: { type: String },
+
 		name: { type: String, required: true, unique: true },
 		collegeCode: { type: String, unique: true },
 		universityAffiliation: { type: String },
 		ranking: { type: Number },
 		accreditationDetails: { body: String, grade: String },
-
-		logo: { type: String },
-		description: { type: String },
+		establishedYear: { type: Number },
 
 		address: {
 			street: { type: String },
@@ -24,8 +25,6 @@ const CollegeSchema = new mongoose.Schema(
 			email: { type: String },
 			website: { type: String },
 		},
-
-		establishedYear: { type: Number },
 
 		// User Management
 		collegeAdmins: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
@@ -47,12 +46,10 @@ const CollegeSchema = new mongoose.Schema(
 		},
 
 		// Announcements & News
-		newsUpdates: [
+		announcements: [
 			{
-				title: { type: String },
-				description: { type: String },
-				date: { type: Date, default: Date.now },
-				link: { type: String },
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Announcement",
 			},
 		],
 
@@ -64,10 +61,11 @@ const CollegeSchema = new mongoose.Schema(
 		},
 
 		adminDetails: {
-			createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "Faculty" },
+			createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 			createdAt: { type: Date, default: Date.now },
 			updatedAt: { type: Date, default: Date.now },
 		},
+		
 	},
 	{ timestamps: true }
 );

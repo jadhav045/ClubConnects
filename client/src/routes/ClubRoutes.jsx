@@ -11,14 +11,6 @@ const ClubRoutes = () => {
 			element={<Dashboard />}
 		>
 			{CommonRoutes()}
-			<Route
-				path="dashboard"
-				element={<ClubDashboard />}
-			/>
-			<Route
-				path="manage/event"
-				element={<EventManagement />}
-			/>
 		</Route>
 	);
 };

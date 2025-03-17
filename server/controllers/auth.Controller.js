@@ -60,6 +60,11 @@ export const login = async (req, res) => {
 	try {
 		const user = await User.findOne({
 			$or: [{ email: emailOrPrn }, { prn: emailOrPrn }],
+		}).then((user) => {
+			if (user && user.role !== "Admin") {
+				return User.populate(user, { path: "profileId" });
+			}
+			return user;
 		});
 
 		if (!user) {
@@ -88,7 +93,9 @@ export const login = async (req, res) => {
 			maxAge: 3600000, // 1 hour expiration
 		});
 
-		res.status(200).json({ message: "Login successful", user, token });
+		res
+			.status(200)
+			.json({ message: "Login successful", user, token, success: true });
 	} catch (error) {
 		res.status(500).json({ message: "Login failed", error: error.message });
 	}

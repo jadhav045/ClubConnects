@@ -7,6 +7,8 @@ import { authMiddleware } from "../../middlewares/auth.Middleware.js";
 import {
 	createCollege,
 	createFacultyFn,
+	getAllCollegeList,
+	getAllFacultiesList,
 } from "../../controllers/Roles/admin.controller.js";
 
 const router = express.Router();
@@ -15,7 +17,7 @@ const router = express.Router();
 router.post(
 	"/create/college",
 	authMiddleware,
-	roleMiddleware(["Admin"]),
+	// roleMiddleware(["Admin"]),
 	createCollege
 );
 
@@ -24,6 +26,20 @@ router.post(
 	authMiddleware,
 	roleMiddleware(["Admin", "Faculty"]),
 	createFacultyFn
+);
+
+router.get(
+	"/faculty/list/:collgeId",
+	authMiddleware,
+	roleMiddleware(["Admin", "Faculty"]),
+	getAllFacultiesList
+);
+
+router.get(
+	"/college/list",
+	authMiddleware,
+	roleMiddleware(["Admin"]),
+	getAllCollegeList
 );
 
 export default router;

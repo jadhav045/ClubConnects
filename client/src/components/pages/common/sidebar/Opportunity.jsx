@@ -1,11 +1,15 @@
-import React from 'react'
+import React from "react";
+import FeedbackList from "../../../../QuestionAnswer/FeedbackList";
 
 const Opportunity = () => {
-  return (
-    <div>
-      I am thinking to put as common
-    </div>
-  )
-}
+	return (
+		<div>
+			{/* I am thinking to put as common
+			 */}
 
-export default Opportunity
+			<FeedbackList />
+		</div>
+	);
+};
+
+export default Opportunity;

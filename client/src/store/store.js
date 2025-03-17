@@ -10,6 +10,10 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import authSlice from "./slice/authSlice";
+import requestSlice from "./slice/requestSlice";
+import clubSlice from "./slice/clubSlice";
+import eventSlice from "./slice/eventSlice";
+import postSlice from "./slice/postSlice";
 const persistConfig = {
 	key: "root",
 	version: 1,
@@ -18,6 +22,10 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
 	auth: authSlice,
+	request: requestSlice,
+	club: clubSlice,
+	event: eventSlice,
+	post: postSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

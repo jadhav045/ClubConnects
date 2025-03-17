@@ -1,4 +1,31 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
+
+const replySchema = new mongoose.Schema(
+	{
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			required: true,
+		},
+		text: { type: String, required: true },
+		timestamp: { type: Date, default: Date.now },
+	},
+	{ _id: false } // Avoid creating a new _id for each reply
+);
+
+const commentSchema = new mongoose.Schema(
+	{
+		userId: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+			required: true,
+		},
+		text: { type: String, required: true },
+		timestamp: { type: Date, default: Date.now },
+		replies: [replySchema], // Nested replies
+	},
+	{ _id: false }
+);
 
 const postSchema = new mongoose.Schema(
 	{
@@ -63,6 +90,17 @@ const postSchema = new mongoose.Schema(
 					},
 					text: { type: String, required: true },
 					timestamp: { type: Date, default: Date.now },
+					replies: [
+						{
+							userId: {
+								type: mongoose.Schema.Types.ObjectId,
+								ref: "User",
+								required: true,
+							},
+							text: { type: String, required: true },
+							timestamp: { type: Date, default: Date.now },
+						},
+					],
 				},
 			],
 			reactions: {
@@ -92,4 +130,4 @@ const postSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-module.exports = mongoose.model("Post", postSchema);
+export const Post = mongoose.model("Post", postSchema);

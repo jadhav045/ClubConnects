@@ -1,4 +1,7 @@
 import React from "react";
+import { useSelector } from "react-redux";
+import { FormSubmitter } from "../../../form/FormSubmmiter";
+import DynamicRegistrationForm from "../../../form/DynamicRegistrationForm";
 
 const Discussion = () => {
 	return (

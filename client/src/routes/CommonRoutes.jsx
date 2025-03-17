@@ -12,81 +12,44 @@ import Resources from "../components/pages/common/navbar/Resources";
 
 const user = {
 	fullName: "John Doe",
-	prn: "12345",
+	prn: "12345678",
 	email: "john.doe@example.com",
 	password: "hashed_password",
 	role: "Student",
 	branch: "Computer Science",
 	profilePicture: "https://example.com/profile.jpg",
-	phoneNumber: "123-456-7890",
+	phoneNumber: "+1234567890",
 	gender: "Male",
-	dateOfBirth: "2000-05-15T00:00:00Z",
+	dateOfBirth: "2000-01-01",
 	socialLinks: {
 		linkedIn: "https://linkedin.com/in/johndoe",
 		twitter: "https://twitter.com/johndoe",
 		github: "https://github.com/johndoe",
-		personalWebsite: "https://johndoe.dev",
+		personalWebsite: "https://johndoe.com",
 	},
 	posts: [],
 	saved: [],
 	address: {
 		street: "123 Main St",
-		city: "Metropolis",
+		city: "New York",
 		state: "NY",
 		zipCode: "10001",
 		country: "USA",
 	},
 	awards: [
 		{
-			title: "Hackathon Winner",
-			description: "Won 1st place in a national hackathon.",
-			date: "2023-09-20T00:00:00Z",
+			title: "Best Project Award",
+			description: "Awarded for the best final-year project",
+			date: "2023-05-20",
 			image: "https://example.com/award.jpg",
 		},
 	],
-	socketId: "abc123socket",
-	notifications: [
-		{
-			message: "New event: Tech Meetup",
-			isRead: false,
-			type: "event",
-			referenceId: "65d12345abcd6789ef012345",
-			sender: "65d67890abcd1234ef567890",
-			url: "https://example.com/event/tech-meetup",
-		},
-	],
-	profileId: {
-		userId: "65d12345abcd6789ef012345",
-		role: "Student",
-		graduationYear: 2024,
-		cgpa: 8.7,
-		skills: ["JavaScript", "React", "Node.js"],
-		eventParticipated: ["65dabc123456ef7890123456"],
-		clubsJoined: [
-			{
-				clubId: "65d67890abcd1234ef567891",
-				role: "President",
-				joinedDate: "2022-01-10T00:00:00Z",
-			},
-		],
-		department: "Computer Science",
-		enrollmentYear: 2020,
-		internships: [
-			{
-				title: "Software Developer Intern",
-				company: "TechCorp",
-				location: "Remote",
-				duration: "3 months",
-				isCurrent: false,
-			},
-		],
-		mentors: ["65dabcd123456ef789012347"],
-	},
+
+	profileId: "profile12345",
 	createdFaculty: [],
 	createdCollege: [],
-	createdAt: "2024-03-06T00:00:00Z",
-	updatedAt: "2024-03-06T00:00:00Z",
 };
+
 const CommonRoutes = () => {
 	return (
 		<>
@@ -127,6 +90,11 @@ const CommonRoutes = () => {
 				path="discussions"
 				element={<Discussion />}
 			/>
+			<Route
+				path="resources"
+				element={<Resources />}
+			/>
+
 		</>
 	);
 };

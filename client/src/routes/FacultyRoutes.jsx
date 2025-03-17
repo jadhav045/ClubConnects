@@ -2,7 +2,8 @@ import { Route } from "react-router-dom";
 import Dashboard from "../components/dashboard/Dashboard";
 import CommonRoutes from "./CommonRoutes";
 import ManageEvents from "../components/pages/faculty/ManageEvents";
-import ManageClubs from "../components/pages/faculty/ManageClubs";
+
+import ClubManagement from "../components/pages/faculty/ClubManagement";
 
 const FacultyRoutes = () => {
 	return (
@@ -18,7 +19,7 @@ const FacultyRoutes = () => {
 			/>
 			<Route
 				path="manage/clubs"
-				element={<ManageClubs />}
+				element={<ClubManagement />}
 			/>
 		</Route>
 	);

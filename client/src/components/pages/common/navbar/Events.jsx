@@ -1,7 +1,7 @@
-import React from "react";
+import EventsContainer from "../../../sub-components/EventsContainer";
 
 const Events = () => {
-	return <div>Here we will show case Events List with some filter options</div>;
+	return <EventsContainer />;
 };
 
 export default Events;

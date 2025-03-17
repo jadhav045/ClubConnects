@@ -13,8 +13,10 @@ const StudentAlumniSchema = new mongoose.Schema(
 			enum: ["Student", "Alumni"],
 			required: true,
 		},
-
+		
+		department: { type: String },
 		graduationYear: { type: Number },
+		enrollmentYear: { type: Number },
 		cgpa: { type: Number, min: 0, max: 10 },
 
 		// Common Fields
@@ -44,8 +46,6 @@ const StudentAlumniSchema = new mongoose.Schema(
 		],
 
 		// Student-Specific Fields
-		department: { type: String },
-		enrollmentYear: { type: Number },
 		internships: [
 			{
 				title: { type: String },
@@ -58,8 +58,7 @@ const StudentAlumniSchema = new mongoose.Schema(
 		mentors: [{ type: mongoose.Schema.Types.ObjectId, ref: "StudentAlumni" }],
 
 		// Alumni-Specific Fields
-		expertiseAreas: [{ type: String }],
-		clubsAdvised: [{ type: mongoose.Schema.Types.ObjectId, ref: "Club" }],
+		// expertiseAreas: [{ type: String }],
 		mentees: [{ type: mongoose.Schema.Types.ObjectId, ref: "StudentAlumni" }],
 		jobs: [
 			{

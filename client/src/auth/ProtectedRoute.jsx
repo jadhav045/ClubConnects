@@ -1,14 +1,11 @@
-// components/ProtectedRoute.js
 import React from "react";
 import { useSelector } from "react-redux";
 import { Navigate, Outlet } from "react-router-dom";
-// import { useAuth } from "../context/AuthContext";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-
 	const { user } = useSelector((store) => store.auth);
+
 	if (!user) {
-		// User is not authenticated; redirect to login page
 		return (
 			<Navigate
 				to="/login"
@@ -17,9 +14,9 @@ const ProtectedRoute = ({ allowedRoles }) => {
 		);
 	}
 
+	const role = user.role.toLowerCase(); // Create a copy instead of modifying user
 
-	if (!allowedRoles.includes(user.role)) {
-		// User does not have permission; redirect to unauthorized page
+	if (!allowedRoles.includes(role)) {
 		return (
 			<Navigate
 				to="/unauthorized"
@@ -28,7 +25,6 @@ const ProtectedRoute = ({ allowedRoles }) => {
 		);
 	}
 
-	// User is allowed; render the child routes/components
 	return <Outlet />;
 };
 

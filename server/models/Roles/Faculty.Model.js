@@ -24,7 +24,7 @@ const FacultySchema = new mongoose.Schema(
 		],
 
 		skills: [{ type: String }],
-		expertiseAreas: [{ type: String }], // Specific domains of expertise (AI, Data Science, etc.)
+
 		announcements: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

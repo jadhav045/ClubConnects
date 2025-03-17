@@ -4,6 +4,7 @@ import CommonRoutes from "./CommonRoutes";
 import Dashboard from "../components/dashboard/Dashboard";
 import MangageUser from "../components/pages/admin/MangageUser";
 import Reports from "../components/pages/admin/Reports";
+import InstitutionManagement from "../components/pages/admin/InstitutionManagement";
 
 // import CommonRoutes from "./CommonRoutes"; // Import the common routes
 
@@ -15,6 +16,10 @@ const AdminRoutes = () => {
 		>
 			{CommonRoutes()}
 
+			<Route
+				path="institute"
+				element={<InstitutionManagement />}
+			/>
 			<Route
 				path="users"
 				element={<MangageUser />}

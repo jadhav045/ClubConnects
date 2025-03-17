@@ -7,7 +7,12 @@ import authRoutes from "./routes/auth.Route.js";
 import adminRoutes from "./routes/role/admin.routes.js";
 import facultyRoutes from "./routes/role/faculty.routes.js";
 import studentRoutes from "./routes/role/student.routes.js";
-
+import formRoutes from "./controllers/form.controller.js";
+import eventRoutes from "./routes/eventRoutes.js";
+import opportunityRoutes from "./routes/opportunityRoutes.js";
+import postRoutes from "./routes/activities/postRoutes.js";
+// import applicationRoutes from "./routes/applicationRoutes.js";
+// import notificationRoutes from "./routes"
 dotenv.config();
 
 const app = express();
@@ -23,6 +28,11 @@ app.use("/auth", authRoutes);
 app.use("/admin", adminRoutes);
 app.use("/faculty", facultyRoutes);
 app.use("/student", studentRoutes);
+app.use("/event", eventRoutes);
+app.use("/form", formRoutes);
+app.use("/opportunities", opportunityRoutes);
+app.use("/post", postRoutes);
+// Routes
 
 // Database Connection
 mongoose

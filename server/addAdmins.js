@@ -1,12 +1,11 @@
 import mongoose from "mongoose";
-import  {User}  from "./models/User.Model.js"; // Adjust path if needed
+import { User } from "./models/User.Model.js"; // Adjust path if needed
 import dotenv from "dotenv";
 import bcrypt from "bcryptjs";
 dotenv.config();
 
-// MongoDB Connection 
 mongoose
-	.connect(process.env.MONGO_URI)
+	.connect("mongodb://localhost:27017/clubConnects")
 	.then(() => console.log("MongoDB Connected"))
 	.catch((err) => console.log("DB Connection Error:", err));
 
