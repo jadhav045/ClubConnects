@@ -3,118 +3,91 @@ import { Event } from "../../models/Postings/Event.Model.js";
 import { Club } from "../../models/Roles/Club.Model.js";
 import { User } from "../../models/User.Model.js";
 
+import mongoose from "mongoose";
+
 export const toggleLikePost = async (req, res) => {
 	try {
-		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ message: "Post not found" });
-
+		const { id } = req.params;
 		const userId = req.user.id;
-		const isLiked = post.interactions.likes.includes(userId);
 
-		// Toggle like
+		// Ensure userId is an ObjectId
+		const objectIdUserId = new mongoose.Types.ObjectId(userId);
+
+		const post = await Post.findById(id);
+		if (!post) {
+			return res.status(404).json({ message: "Post not found" });
+		}
+
+		// Check if user has already liked the post
+		const isLiked = post.likes.includes(objectIdUserId);
+
 		if (isLiked) {
-			post.interactions.likes.pull(userId);
+			// Remove like
+			post.likes.pull(objectIdUserId);
 		} else {
-			post.interactions.likes.push(userId);
+			// Add like (just the ObjectId, not an object)
+			post.likes.push(objectIdUserId);
 		}
 
 		await post.save();
-		res.json({ message: isLiked ? "Like removed" : "Post liked" });
+
+		return res.json({
+			message: isLiked ? "Like removed" : "Post liked",
+			success: true,
+			totalLikes: post.likes.length, // Return updated like count
+		});
 	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
+		return res
+			.status(500)
+			.json({ message: "Server error", error: err.message });
 	}
 };
 
 export const addComment = async (req, res) => {
 	try {
 		const { text } = req.body;
-		if (!text)
+
+		if (!text) {
 			return res.status(400).json({ message: "Comment cannot be empty" });
+		}
+
+		// Convert userId to ObjectId
+		const objectIdUserId = new mongoose.Types.ObjectId(req.user.id);
 
 		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ message: "Post not found" });
+		if (!post) {
+			return res.status(404).json({ message: "Post not found" });
+		}
 
+		// Create new comment with proper ObjectId
 		const newComment = {
-			userId: req.user.id,
+			userId: objectIdUserId, // Ensure ObjectId format
 			text,
 			timestamp: new Date(),
 		};
 
-		post.interactions.comments.push(newComment);
-		await post.save();
-
-		res.status(201).json({ message: "Comment added", comment: newComment });
-	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
-	}
-};
-export const reactToPost = async (req, res) => {
-	try {
-		const { reactionType } = req.body;
-		const userId = req.user.id; // Assuming user ID is available from auth middleware
-		const validReactions = ["like", "love", "fire"];
-
-		if (!validReactions.includes(reactionType)) {
-			return res.status(400).json({ message: "Invalid reaction type" });
-		}
-
-		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ message: "Post not found" });
-
-		// Find if the user has already reacted
-		let previousReaction = null;
-		for (const reaction of validReactions) {
-			if (post.interactions.reactions[reaction][userId]) {
-				previousReaction = reaction;
-				break;
-			}
-		}
-
-		// Remove previous reaction if exists
-		if (previousReaction) {
-			delete post.interactions.reactions[previousReaction][userId];
-		}
-
-		// Add new reaction
-		post.interactions.reactions[reactionType][userId] = true;
+		// Push comment to the array
+		post.comments.push(newComment); // Updated to match schema
 
 		await post.save();
 
-		res.json({
-			message: `Reaction updated to ${reactionType}`,
-			reactions: post.interactions.reactions,
+		return res.status(201).json({
+			message: "Comment added successfully",
+			success: true,
+			comment: newComment,
+			totalComments: post.comments.length, // Optional: return total comments count
 		});
 	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
-	}
-};
-
-export const removeReaction = async (req, res) => {
-	try {
-		const { reactionType } = req.body;
-		const validReactions = ["like", "love", "fire"];
-
-		if (!validReactions.includes(reactionType)) {
-			return res.status(400).json({ message: "Invalid reaction type" });
-		}
-
-		const post = await Post.findById(req.params.id);
-		if (!post) return res.status(404).json({ message: "Post not found" });
-
-		if (post.interactions.reactions[reactionType] > 0) {
-			post.interactions.reactions[reactionType] -= 1;
-		}
-
-		await post.save();
-		res.json({
-			message: `${reactionType} reaction removed`,
-			reactions: post.interactions.reactions,
+		return res.status(500).json({
+			message: "Server error",
+			error: err.message,
 		});
-	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
 	}
 };
 
+
+
+// Function to delete a comment (including its replies)
 export const deleteComment = async (req, res) => {
 	try {
 		const { postId, commentId } = req.params;
@@ -122,8 +95,8 @@ export const deleteComment = async (req, res) => {
 
 		if (!post) return res.status(404).json({ message: "Post not found" });
 
-		// Find comment
-		const commentIndex = post.interactions.comments.findIndex(
+		// Find the comment
+		const commentIndex = post.comments.findIndex(
 			(comment) => comment._id.toString() === commentId
 		);
 
@@ -132,7 +105,7 @@ export const deleteComment = async (req, res) => {
 
 		// Check ownership
 		if (
-			post.interactions.comments[commentIndex].userId.toString() !==
+			post.comments[commentIndex].userId.toString() !==
 				req.user.id &&
 			req.user.role !== "Admin"
 		) {
@@ -141,8 +114,8 @@ export const deleteComment = async (req, res) => {
 				.json({ message: "Not authorized to delete this comment" });
 		}
 
-		// Remove comment
-		post.interactions.comments.splice(commentIndex, 1);
+		// Remove comment (along with its replies)
+		post.comments.splice(commentIndex, 1);
 		await post.save();
 
 		res.json({ message: "Comment deleted successfully" });
@@ -151,48 +124,98 @@ export const deleteComment = async (req, res) => {
 	}
 };
 
-// export const addComment = async (req, res) => {
-// 	try {
-// 		const { postId } = req.params;
-// 		const { userId, text } = req.body;
+// Function to delete a reply inside a comment
+export const deleteReplyComment = async (req, res) => {
+	try {
+		const { postId, commentId, replyId } = req.params;
+		const post = await Post.findById(postId);
 
-// 		const post = await Post.findById(postId);
-// 		if (!post) return res.status(404).json({ message: "Post not found" });
+		if (!post) return res.status(404).json({ message: "Post not found" });
 
-// 		const newComment = { userId, text, timestamp: new Date(), replies: [] };
+		// Find the comment
+		const comment = post.comments.id(commentId);
+		if (!comment) return res.status(404).json({ message: "Comment not found" });
 
-// 		post.interactions.comments.push(newComment);
-// 		await post.save();
+		// Find the reply
+		const replyIndex = comment.replies.findIndex(
+			(reply) => reply._id.toString() === replyId
+		);
 
-// 		res.status(201).json({ message: "Comment added successfully", post });
-// 	} catch (error) {
-// 		res.status(500).json({ error: error.message });
-// 	}
-// };
+		if (replyIndex === -1)
+			return res.status(404).json({ message: "Reply not found" });
+
+		// Check reply ownership
+		if (
+			comment.replies[replyIndex].userId.toString() !== req.user.id &&
+			req.user.role !== "Admin"
+		) {
+			return res
+				.status(403)
+				.json({ message: "Not authorized to delete this reply" });
+		}
+
+		// Remove the reply
+		comment.replies.splice(replyIndex, 1);
+		await post.save();
+
+		res.json({ message: "Reply deleted successfully" });
+	} catch (err) {
+		res.status(500).json({ message: "Server error", error: err.message });
+	}
+};
+
 export const addReply = async (req, res) => {
 	try {
 		const { text } = req.body;
-		if (!text)
+		if (!text) {
 			return res.status(400).json({ message: "Reply cannot be empty" });
+		}
 
 		const { postId, commentId } = req.params;
+
+		// Ensure `postId` and `commentId` are valid ObjectIds
+		if (
+			!mongoose.Types.ObjectId.isValid(postId) ||
+			!mongoose.Types.ObjectId.isValid(commentId)
+		) {
+			return res.status(400).json({ message: "Invalid post or comment ID" });
+		}
+
 		const post = await Post.findById(postId);
-		if (!post) return res.status(404).json({ message: "Post not found" });
+		if (!post) {
+			return res.status(404).json({ message: "Post not found" });
+		}
 
-		const comment = post.interactions.comments.id(commentId);
-		if (!comment) return res.status(404).json({ message: "Comment not found" });
+		// Find comment in the post's comments array
+		const comment = post.comments.id(commentId); // Updated based on schema
+		if (!comment) {
+			return res.status(404).json({ message: "Comment not found" });
+		}
 
+		// Ensure `userId` is an ObjectId
+		const objectIdUserId = new mongoose.Types.ObjectId(req.user.id);
+
+		// Create new reply object
 		const newReply = {
-			userId: req.user.id,
+			userId: objectIdUserId, // Ensure ObjectId format
 			text,
 			timestamp: new Date(),
 		};
 
+		// Push the reply into comment's replies array
 		comment.replies.push(newReply);
 		await post.save();
 
-		res.status(201).json({ message: "Reply added", reply: newReply });
+		return res.status(201).json({
+			message: "Reply added successfully",
+			success: true,
+			reply: newReply,
+			totalReplies: comment.replies.length, // Optional: return total replies count
+		});
 	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
+		return res.status(500).json({
+			message: "Server error",
+			error: err.message,
+		});
 	}
 };

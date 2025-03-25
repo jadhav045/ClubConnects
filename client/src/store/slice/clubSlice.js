@@ -15,12 +15,12 @@ const clubSlice = createSlice({
 		setSelectedClub: (state, action) => {
 			state.selectedClub = action.payload;
 		},
-		logoutUser: (state) => {
+		removeAllClubs: (state) => {
 			state.clubs = [];
 			state.selectedClub = null;
 		},
 	},
 });
 
-export const { setClubs, setSelectedClub } = clubSlice.actions;
+export const { setClubs, setSelectedClub, removeAllClubs } = clubSlice.actions;
 export default clubSlice.reducer;

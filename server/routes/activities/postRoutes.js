@@ -4,21 +4,25 @@ import {
 	updatePost,
 	createPost,
 	getAllPosts,
-	getPostById,
+	savePostFn,
+	createPoll,
+	replyPoll,
+	// getPostById,
 } from "../../controllers/Postings/post.controller.js";
 import { authMiddleware } from "../../middlewares/auth.Middleware.js";
 import {
 	toggleLikePost,
 	addComment,
 	deleteComment,
-	reactToPost,
-	removeReaction,
 	addReply,
+	deleteReplyComment,
 } from "../../controllers/Postings/post.Functions.controller.js";
 const router = express();
 // Create
 router.post("/", authMiddleware, createPost);
-router.get("/:id", authMiddleware, getPostById);
+router.post("/poll", authMiddleware, createPoll);
+router.put("/replypoll", authMiddleware, replyPoll);
+// router.get("/:id", authMiddleware, getPostById);
 // Read
 router.get("/", getAllPosts);
 // router.get("/:id", authMiddleware, getPostById);
@@ -30,10 +34,19 @@ router.put("/:id", authMiddleware, updatePost);
 router.delete("/:id", authMiddleware, deletePost);
 
 router.put("/:id/like", authMiddleware, toggleLikePost);
-router.post("/:id/comment", authMiddleware, addComment);
-router.delete("/:postId/comment/:commentId", authMiddleware, deleteComment);
-router.post("/:id/react", authMiddleware, reactToPost);
-router.put("/:id/remove-reaction", authMiddleware, removeReaction);
 
-router.post("/:postId/comments/:commentId/reply", authMiddleware, addReply);
+router.post("/:id/comment", authMiddleware, addComment);
+
+router.delete("/:postId/comment/:commentId", authMiddleware, deleteComment);
+
+router.post("/:postId/comment/:commentId/reply", authMiddleware, addReply);
+
+router.delete(
+	"/:postId/comment/:commentId/replies/:replyId",
+	authMiddleware,
+
+	deleteReplyComment
+);
+
+router.put("/save/:postId/:clubId?", authMiddleware, savePostFn);
 export default router;

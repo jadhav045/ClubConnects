@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
+import { toast } from "react-toastify";
 import { setEvents } from "../../store/slice/eventSlice";
 import { setUserClub } from "../../store/slice/authSlice";
 import { getPresidentClubId } from "../../hooks/getPresidantClubId";
 
-export const useCreateEventForm = (onSuccess) => {
+export const useCreateEventForm = (onSuccess, onClose) => {
 	const dispatch = useDispatch();
 
-	const { user, userClub } = useSelector((store) => store.auth);
-	const { events } = useSelector((store) => store.event);
+	const { user } = useSelector((store) => store.auth);
+	const organizerId = getPresidentClubId(user);
 
 	const [formData, setFormData] = useState({
 		title: "",
@@ -18,9 +19,7 @@ export const useCreateEventForm = (onSuccess) => {
 		detailedDescription: "",
 		eventDateTime: "",
 		location: "",
-		organizer: "67c9fc043e56002ddf7300c8",
-		requestUniqueId: "wtss",
-		registerLink: "",
+		organizer: organizerId,
 		registrationDeadline: "",
 		schedule: [],
 		resources: [],
@@ -38,20 +37,44 @@ export const useCreateEventForm = (onSuccess) => {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
-	const handleSubmit = async (eventId) => {
+	const handleSubmit = async () => {
 		try {
-			await axios.post("your-endpoint", formData);
-			onSuccess?.();
-			onClose?.();
+			console.log("Submitting Form Data:", formData);
+
+			const res = await axios.post(
+				"http://localhost:3002/student/event/create",
+				formData
+			);
+
+			if (res.data.success) {
+				toast.success("Event created successfully! 🎉");
+
+				setFormData({
+					title: "",
+					eventType: "",
+					description: "",
+					detailedDescription: "",
+					eventDateTime: "",
+					location: "",
+					registrationDeadline: "",
+					schedule: [],
+					resources: [],
+				});
+
+				if (onSuccess) onSuccess();
+				if (onClose) onClose();
+			} else {
+				throw new Error(res.data.message || "Event creation failed");
+			}
 		} catch (error) {
 			console.error("Submission failed:", error);
+			toast.error(error.response?.data?.message || "Failed to create event!");
 		}
 	};
 
 	return {
 		formData,
-		handleChange: (e) =>
-			setFormData({ ...formData, [e.target.name]: e.target.value }),
+		handleChange,
 		handleSubmit,
 		setFormData,
 	};

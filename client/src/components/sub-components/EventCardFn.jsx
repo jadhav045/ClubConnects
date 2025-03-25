@@ -12,8 +12,9 @@ export const useEventCard = (event) => {
 	const openMenu = Boolean(anchorEl);
 
 	const { user } = useSelector((store) => store.auth);
+
 	const presidentClubId = getPresidentClubId(user);
-	const isOrganizer = event?.organizer === presidentClubId;
+	const isOrganizer = event?.organizer._id === presidentClubId;
 
 	const handleOpen = () => setOpen(true);
 	const handleClose = () => setOpen(false);
@@ -38,25 +39,21 @@ export const useEventCard = (event) => {
 	};
 
 	const handleCreateForm = () => {
-		console.log("Creating FOrm");
-		console.log("Create registration form for", event._id);
 		handleMenuClose();
 		setShowForm(true);
 	};
 
 	const handleViewRegistrations = () => {
 		handleMenuClose();
-		console.log("View registrations for", event._id);
 	};
 
 	const handleViewFeedback = () => {
 		handleMenuClose();
-		console.log("View feedback for", event._id);
 	};
 
 	const handleShare = () => {
+		console.log("eVENT", user);
 		handleMenuClose();
-		console.log("Share event", event._id);
 	};
 
 	const handleRegister = (data) => {

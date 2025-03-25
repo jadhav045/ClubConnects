@@ -10,8 +10,12 @@ const eventSlice = createSlice({
 			// console.log("Updating Redux store with events:", action.payload); // Debugging log
 			state.events = action.payload; // Ensure correct mutation
 		},
+		removeAllEvents: (state) => {
+			state.events = [];
+			state.selectedEvent = null;
+		},
 	},
 });
 
-export const { setEvents } = eventSlice.actions;
+export const { setEvents, removeAllEvents } = eventSlice.actions;
 export default eventSlice.reducer;

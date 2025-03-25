@@ -9,6 +9,7 @@ import {
 	createFacultyFn,
 	getAllCollegeList,
 	getAllFacultiesList,
+	getAllUsers,
 } from "../../controllers/Roles/admin.controller.js";
 
 const router = express.Router();
@@ -29,7 +30,7 @@ router.post(
 );
 
 router.get(
-	"/faculty/list/:collgeId",
+	"/faculty/list/:collegeId",
 	authMiddleware,
 	roleMiddleware(["Admin", "Faculty"]),
 	getAllFacultiesList
@@ -42,4 +43,5 @@ router.get(
 	getAllCollegeList
 );
 
+router.get("/users/list",  getAllUsers);
 export default router;

@@ -145,3 +145,12 @@ export const assignRoleFn = async (req, res) => {
 };
 
 // Let me know if you want me to integrate this into the create/update club functions! 🚀
+
+export const getAllClubs = async (req, res) => {
+	try {
+		const clubs = await Club.find();
+		return res.json({ clubs, message: "Club Fetch successfully" });
+	} catch (error) {
+		return res.json({ success: false, message: "Error while Fetching CLubs" });
+	}
+};

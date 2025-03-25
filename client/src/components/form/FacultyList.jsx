@@ -2,29 +2,25 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const FacultyList = () => {
+const FacultyList = ({ collegeId }) => {
 	const [faculties, setFaculties] = useState([]);
 	const [loading, setLoading] = useState(true);
-	const collegeId = "67c7565d758953a6ff62e533";
 
 	useEffect(() => {
 		const fetchFaculties = async () => {
 			const token = localStorage.getItem("token");
 			if (!token) throw new Error("No token found");
 
+			console.log(collegeId);
 			try {
 				const response = await axios.get(
 					`http://localhost:3002/admin/faculty/list/${collegeId}`,
-					{
-						headers: { Authorization: `Bearer ${token}` },
-					}
+					{ headers: { Authorization: `Bearer ${token}` } }
 				);
 				setFaculties(response.data.data);
 			} catch (error) {
-				console.error("Error fetching faculty list:", error);
 				toast.error(
-					error.response?.data?.message ||
-						"Failed to fetch faculty list. Please try again."
+					error.response?.data?.message || "Failed to fetch faculty list"
 				);
 			} finally {
 				setLoading(false);
@@ -35,42 +31,54 @@ const FacultyList = () => {
 
 	if (loading)
 		return (
-			<div className="flex justify-center items-center h-40">
+			<div className="flex flex-col items-center justify-center h-40 space-y-3">
 				<div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+				<p className="text-gray-600 text-sm">Loading faculties...</p>
 			</div>
 		);
-
 	return (
-		<div className="max-w-4xl mx-auto mt-6 p-6 bg-white shadow-lg rounded-lg">
-			<h2 className="text-xl font-semibold mb-4 text-gray-700">Faculty List</h2>
-
-			{faculties.length === 0 ? (
-				<div className="text-center text-gray-500 py-6">
-					<p>No faculties found.</p>
-				</div>
-			) : (
-				<div className="overflow-x-auto">
-					<table className="w-full border-collapse border border-gray-300 rounded-lg">
-						<thead className="bg-blue-500 text-white">
-							<tr>
-								<th className="py-2 px-4 text-left">Full Name</th>
-								<th className="py-2 px-4 text-left">Email</th>
-							</tr>
-						</thead>
-						<tbody>
-							{faculties.map((faculty) => (
-								<tr
-									key={faculty._id}
-									className="border-b border-gray-200 hover:bg-gray-100 transition"
-								>
-									<td className="py-2 px-4">{faculty.fullName}</td>
-									<td className="py-2 px-4">{faculty.email}</td>
-								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
+		<div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg">
+			<div className="p-6">
+				{faculties.length === 0 ? (
+					<div className="text-center py-8 bg-gray-50 rounded-lg">
+						<p className="text-gray-500">No faculty members found</p>
+					</div>
+				) : (
+					<div className="space-y-4">
+						{faculties.map((faculty) => (
+							<div
+								key={faculty._id}
+								className="border rounded-lg shadow-sm hover:shadow-md transition-shadow"
+							>
+								{/* Faculty Header */}
+								<div className="p-4 bg-gray-50 flex justify-between items-start">
+									<div className="flex-1">
+										<div className="flex items-center gap-3">
+											<h3 className="text-lg font-semibold text-gray-800">
+												{faculty.fullName}
+											</h3>
+											<span className="inline-block px-2 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+												{faculty.profileId?.subRole || "Faculty"}
+											</span>
+										</div>
+										<div className="mt-2 space-y-1">
+											<p className="text-sm text-gray-600">
+												<span className="font-medium">Email:</span>{" "}
+												<a
+													href={`mailto:${faculty.email}`}
+													className="text-blue-600 hover:underline"
+												>
+													{faculty.email}
+												</a>
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						))}
+					</div>
+				)}
+			</div>
 		</div>
 	);
 };

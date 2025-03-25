@@ -1,353 +1,224 @@
 import React, { useState } from "react";
 import {
-	Card,
-	CardHeader,
-	CardContent,
-	Typography,
-	Avatar,
-	IconButton,
-	Button,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	List,
-	ListItem,
-	ListItemAvatar,
-	ListItemText,
-	Divider,
-	Chip,
-	Box,
-	Menu,
-	MenuItem,
-	useTheme,
-} from "@mui/material";
-import {
-	Favorite,
-	FavoriteBorder,
-	CommentOutlined,
-	AttachFile,
-	OpenInNew,
-	MoreVert,
-} from "@mui/icons-material";
-import { formatDistanceToNow } from "date-fns";
+	FaEllipsisH,
+	FaRegHeart,
+	FaHeart,
+	FaRegComment,
+	FaRegPaperPlane,
+	FaRegBookmark,
+	FaBookmark,
+	FaTrash,
+} from "react-icons/fa";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Pagination } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import { usePostCard } from "./postCardFn";
+import CommentsModal from "./CommentsModal";
 
-const PostCard = ({ post }) => {
-	const theme = useTheme();
-	const [openComments, setOpenComments] = useState(false);
-	const [liked, setLiked] = useState(
-		post.interactions.likes.includes("67cb18d2fd4d5bd90bfc14dd")
-	);
-	const [likesCount, setLikesCount] = useState(post.interactions.likes.length);
-	const [anchorEl, setAnchorEl] = useState(null);
+const PostCard = ({ post, currentUser }) => {
+	const [showComments, setShowComments] = useState(false);
+	const {
+		showOptions,
+		likes,
+		liked,
+		comments,
+		newComment,
+		isSubmittingComment,
+		replyingTo,
+		replyText,
+		isSubmittingReply,
+		setNewComment,
+		setReplyingTo,
+		setReplyText,
+		handleLike,
+		toggleOptions,
+		handleAddComment,
+		handleDeleteComment,
+		handleReply,
 
-	const handleMenuOpen = (event) => {
-		setAnchorEl(event.currentTarget);
-	};
+		handleDeleteReply,
+		isSaved,
+		handleSavePost,
 
-	const handleMenuClose = () => {
-		setAnchorEl(null);
-	};
-
-	const handleLike = () => {
-		setLiked(!liked);
-		setLikesCount(liked ? likesCount - 1 : likesCount + 1);
-	};
+		isDeleting,
+		handleDeletePost,
+	} = usePostCard(post, currentUser);
 
 	return (
-		<Card
-			sx={{
-				maxWidth: 600,
-				margin: "auto",
-				mt: 3,
-				borderRadius: 4,
-				boxShadow: theme.shadows[3],
-				"&:hover": { boxShadow: theme.shadows[6] },
-				transition: "box-shadow 0.3s ease",
-			}}
-		>
-			{/* Author Section */}
-			<CardHeader
-				avatar={
-					<Avatar
-						src={post.author.avatar}
-						sx={{ bgcolor: theme.palette.primary.main }}
-					>
-						{/* {post.author.name[0]} */}
-					</Avatar>
-				}
-				action={
-					<>
-						<IconButton onClick={handleMenuOpen}>
-							<MoreVert />
-						</IconButton>
-						<Menu
-							anchorEl={anchorEl}
-							open={Boolean(anchorEl)}
-							onClose={handleMenuClose}
-						>
-							<MenuItem onClick={handleMenuClose}>Save Post</MenuItem>
-							<MenuItem onClick={handleMenuClose}>Report</MenuItem>
-						</Menu>
-					</>
-				}
-				title={
-					<Typography
-						variant="subtitle1"
-						fontWeight="600"
-					>
-						{post.author.name}
-					</Typography>
-				}
-				subheader={
-					<Typography
-						variant="caption"
-						color="text.secondary"
-					>
-						{post.author.role} • {formatDistanceToNow(new Date(post.createdAt))}{" "}
-						ago
-					</Typography>
-				}
-			/>
-
-			{/* Post Content */}
-			<CardContent sx={{ pt: 0 }}>
-				<Typography
-					variant="body1"
-					paragraph
-					sx={{ lineHeight: 1.6 }}
-				>
-					{post.content.text}
-				</Typography>
-
-				{/* Attachments */}
-				{post.content.attachments.map((attachment, index) => (
-					<Box
-						key={index}
-						sx={{ mb: 2, position: "relative" }}
-					>
-						{attachment.fileType === "pdf" ? (
-							<Button
-								variant="contained"
-								startIcon={<AttachFile />}
-								endIcon={<OpenInNew />}
-								href={attachment.fileUrl}
-								target="_blank"
-								sx={{
-									borderRadius: 3,
-									textTransform: "none",
-									bgcolor: theme.palette.grey[200],
-									color: "text.primary",
-									"&:hover": { bgcolor: theme.palette.grey[300] },
-								}}
-							>
-								View PDF
-							</Button>
-						) : (
-							<Box
-								sx={{
-									borderRadius: 3,
-									overflow: "hidden",
-									position: "relative",
-									"&:hover img": { transform: "scale(1.02)" },
-								}}
-							>
-								<img
-									src={attachment.fileUrl}
-									alt={`Attachment ${index}`}
-									style={{
-										width: "100%",
-										transition: "transform 0.3s ease",
-									}}
-								/>
-							</Box>
-						)}
-					</Box>
-				))}
-			</CardContent>
-
-			{/* Tags & Mentions */}
-			<Box sx={{ px: 2, display: "flex", gap: 1, flexWrap: "wrap" }}>
-				{post.tags.map((tag, index) => (
-					<Chip
-						key={index}
-						label={`#${tag}`}
-						size="small"
-						sx={{
-							bgcolor: theme.palette.primary.light,
-							color: theme.palette.primary.contrastText,
-						}}
+		<div className="bg-white max-w-[500px] w-full mx-auto mb-4 sm:rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+			{/* Header */}
+			<div className="flex items-center justify-between p-2.5">
+				<div className="flex items-center space-x-2">
+					<img
+						src={post?.authorId?.profilePicture}
+						alt="Profile"
+						className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
 					/>
-				))}
-				{post.mentions.map((mention, index) => (
-					<Chip
-						key={index}
-						label={`@${mention}`}
-						size="small"
-						sx={{
-							bgcolor: theme.palette.secondary.light,
-							color: theme.palette.secondary.contrastText,
-						}}
-					/>
-				))}
-			</Box>
-
-			{/* Interaction Buttons */}
-			<Box
-				sx={{
-					display: "flex",
-					alignItems: "center",
-					px: 2,
-					py: 1,
-					borderTop: `1px solid ${theme.palette.divider}`,
-				}}
-			>
-				<IconButton
-					onClick={handleLike}
-					sx={{
-						color: liked ? theme.palette.error.main : "inherit",
-						"&:hover": { color: theme.palette.error.light },
-					}}
-				>
-					{liked ? <Favorite /> : <FavoriteBorder />}
-					<Typography
-						variant="body2"
-						sx={{ ml: 0.5 }}
+					<div>
+						<h4 className="text-sm font-semibold">
+							{post?.authorId?.fullName}
+						</h4>
+						<p className="text-xs text-gray-500">{post?.category}</p>
+					</div>
+				</div>
+				<div className="relative">
+					<button
+						onClick={toggleOptions}
+						className="p-1.5 hover:bg-gray-100 rounded-full"
 					>
-						{likesCount}
-					</Typography>
-				</IconButton>
+						<FaEllipsisH className="text-gray-600 w-4 h-4" />
+					</button>
 
-				<IconButton
-					onClick={() => setOpenComments(true)}
-					sx={{
-						color: "text.secondary",
-						"&:hover": { color: theme.palette.primary.main },
-					}}
-				>
-					<CommentOutlined />
-					<Typography
-						variant="body2"
-						sx={{ ml: 0.5 }}
-					>
-						{post.interactions.comments.length}
-					</Typography>
-				</IconButton>
-			</Box>
-
-			{/* Comments Dialog */}
-			<Dialog
-				open={openComments}
-				onClose={() => setOpenComments(false)}
-				fullWidth
-				maxWidth="sm"
-			>
-				<DialogTitle
-					sx={{
-						bgcolor: theme.palette.background.paper,
-						borderBottom: `1px solid ${theme.palette.divider}`,
-					}}
-				>
-					Comments ({post.interactions.comments.length})
-				</DialogTitle>
-				<DialogContent sx={{ p: 0 }}>
-					<List>
-						{post.interactions.comments.map((comment) => (
-							<React.Fragment key={comment._id}>
-								<ListItem
-									alignItems="flex-start"
-									sx={{ py: 2 }}
+					{showOptions && (
+						<div className="absolute right-0 mt-1 w-40 bg-white shadow-lg rounded-md py-1 text-xs z-50 border border-gray-100">
+							<button
+								onClick={handleSavePost}
+								className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center space-x-2"
+							>
+								{isSaved ? (
+									<FaBookmark className="text-blue-500 w-3.5 h-3.5" />
+								) : (
+									<FaRegBookmark className="w-3.5 h-3.5" />
+								)}
+								<span>{isSaved ? "Unsave" : "Save"}</span>
+							</button>
+							{(currentUser?._id === post?.authorId?._id ||
+								currentUser?.role === "Admin") && (
+								<button
+									onClick={handleDeletePost}
+									className="w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center space-x-2 text-red-500"
 								>
-									<ListItemAvatar>
-										<Avatar src={comment.userAvatar}>
-											{/* {comment.userName[0]} */}
-										</Avatar>
-									</ListItemAvatar>
-									<ListItemText
-										primary={
-											<>
-												<Typography
-													variant="subtitle2"
-													component="span"
-													fontWeight="600"
-												>
-													{comment.userName}
-												</Typography>
-												<Typography
-													variant="caption"
-													color="text.secondary"
-													sx={{ ml: 1 }}
-												>
-													{formatDistanceToNow(new Date(comment.timestamp))} ago
-												</Typography>
-											</>
-										}
-										secondary={
-											<Typography
-												variant="body2"
-												color="text.primary"
-											>
-												{comment.text}
-											</Typography>
-										}
-									/>
-								</ListItem>
+									<FaTrash className="w-3.5 h-3.5" />
+									<span>Delete</span>
+								</button>
+							)}
+						</div>
+					)}
+				</div>
+			</div>
 
-								{/* Replies */}
-								{comment.replies.map((reply) => (
-									<ListItem
-										key={reply._id}
-										alignItems="flex-start"
-										sx={{
-											py: 2,
-											pl: 8,
-											bgcolor: theme.palette.background.default,
-										}}
+			{/* Media */}
+			{post?.attachments?.length > 0 && (
+				<div className="relative aspect-square bg-gray-50">
+					<Swiper
+						navigation
+						pagination={{ clickable: true }}
+						modules={[Navigation, Pagination]}
+						className="h-full w-full"
+					>
+						{post.attachments.map((file, index) => (
+							<SwiperSlide key={index}>
+								{file.fileType === "mp4" ? (
+									<video
+										controls
+										className="w-full h-full object-cover"
 									>
-										<ListItemAvatar sx={{ minWidth: 40 }}>
-											<Avatar sx={{ width: 32, height: 32 }}>
-												{/* {reply.userName[0]} */}
-											</Avatar>
-										</ListItemAvatar>
-										<ListItemText
-											primary={
-												<>
-													<Typography
-														variant="subtitle2"
-														component="span"
-														fontWeight="600"
-													>
-														{reply.userName}
-													</Typography>
-													<Typography
-														variant="caption"
-														color="text.secondary"
-														sx={{ ml: 1 }}
-													>
-														{formatDistanceToNow(new Date(reply.timestamp))} ago
-													</Typography>
-												</>
-											}
-											secondary={
-												<Typography
-													variant="body2"
-													color="text.primary"
-												>
-													{reply.text}
-												</Typography>
-											}
+										<source
+											src={file.fileUrl}
+											type="video/mp4"
 										/>
-									</ListItem>
-								))}
-								<Divider
-									variant="inset"
-									component="li"
-								/>
-							</React.Fragment>
+									</video>
+								) : (
+									<img
+										src={file.fileUrl}
+										alt="Post content"
+										className="w-full h-full object-cover"
+										loading="lazy"
+									/>
+								)}
+							</SwiperSlide>
 						))}
-					</List>
-				</DialogContent>
-			</Dialog>
-		</Card>
+					</Swiper>
+				</div>
+			)}
+
+			{/* Actions */}
+			<div className="px-3 pt-3">
+				<div className="flex justify-between items-center">
+					<div className="flex space-x-3">
+						<button
+							onClick={handleLike}
+							className={`${liked ? "text-red-500" : "text-gray-900"}`}
+						>
+							{liked ? (
+								<FaHeart className="w-5 h-5" />
+							) : (
+								<FaRegHeart className="w-5 h-5" />
+							)}
+						</button>
+						<button
+							onClick={() => setShowComments(true)}
+							className="text-gray-900"
+						>
+							<FaRegComment className="w-5 h-5" />
+						</button>
+						<button className="text-gray-900">
+							<FaRegPaperPlane className="w-5 h-5" />
+						</button>
+					</div>
+					<button onClick={handleSavePost}>
+						{isSaved ? (
+							<FaBookmark className="text-blue-500 w-5 h-5" />
+						) : (
+							<FaRegBookmark className="w-5 h-5" />
+						)}
+					</button>
+				</div>
+
+				{/* Likes and Text */}
+				<div className="mt-2 space-y-1">
+					<p className="text-sm font-semibold">{likes} likes</p>
+					<div className="text-sm">
+						<span className="font-semibold">{post?.authorId?.fullName}</span>
+						<span className="ml-2">{post?.text}</span>
+					</div>
+					{post?.mentions?.length > 0 && (
+						<div className="text-xs text-blue-600">
+							{post.mentions.map((mention, index) => (
+								<a
+									key={index}
+									href={`/@${mention}`}
+									className="mr-1.5"
+								>
+									@{mention}
+								</a>
+							))}
+						</div>
+					)}
+					<button
+						onClick={() => setShowComments(true)}
+						className="text-gray-500 text-xs"
+					>
+						View all {comments?.length} comments
+					</button>
+				</div>
+
+				{/* Timestamp */}
+				<p className="text-gray-500 text-xs uppercase mt-2 pb-2">
+					{post?.createdAt}
+				</p>
+			</div>
+			<CommentsModal
+				isOpen={showComments}
+				onClose={() => setShowComments(false)}
+				post={post}
+				comments={comments}
+				currentUser={currentUser}
+				newComment={newComment}
+				setNewComment={setNewComment}
+				handleAddComment={handleAddComment}
+				handleDeleteComment={handleDeleteComment}
+				handleReply={handleReply}
+				replyingTo={replyingTo}
+				setReplyingTo={setReplyingTo}
+				replyText={replyText}
+				setReplyText={setReplyText}
+				isSubmittingComment={isSubmittingComment}
+				isSubmittingReply={isSubmittingReply}
+			/>
+		</div>
 	);
 };
 

@@ -18,6 +18,7 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// console.log(process.env.MONGO_URI);
 // Middleware
 app.use(express.json());
 app.use(cookieParser());

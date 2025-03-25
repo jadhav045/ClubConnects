@@ -16,7 +16,6 @@ export const createEvent = async (req, res) => {
 			registrationDeadline,
 			tags,
 			maxParticipants,
-			requestUniqueId,
 		} = req.body;
 
 		console.log(req.body);
@@ -32,7 +31,6 @@ export const createEvent = async (req, res) => {
 		) {
 			return res.status(400).json({ message: "Missing required fields" });
 		}
-
 
 		// Validate event date and registration deadline
 		if (new Date(eventDateTime) <= new Date()) {
@@ -58,21 +56,14 @@ export const createEvent = async (req, res) => {
 		// }
 
 		// Check if organizer exists in Club
+
 		const club = await Club.findById(organizer);
 		if (!club) {
 			return res.status(404).json({ message: "Organizer club not found" });
 		}
 
 		console.log("je");
-		// Check for unique request ID
-		const existingEvent = await Event.findOne({ requestUniqueId });
-		if (existingEvent) {
-			return res
-				.status(405)
-				.json({ message: "Event with this request ID already exists" });
-		}
 
-		// Create new event
 		const newEvent = new Event({
 			title,
 			eventType,
@@ -83,7 +74,6 @@ export const createEvent = async (req, res) => {
 			schedule,
 			resources,
 			organizer,
-			requestUniqueId,
 			registrationDeadline,
 			tags,
 			maxParticipants,
@@ -94,13 +84,19 @@ export const createEvent = async (req, res) => {
 		await newEvent.save();
 
 		console.log("D");
-		return res
-			.status(201)
-			.json({ message: "Event created successfully", event: newEvent });
+		return res.status(201).json({
+			message: "Event created successfully",
+			event: newEvent,
+			success: true,
+		});
 	} catch (error) {
-		return res
-			.status(500)
-			.json({ message: "Server error", error: error.message });
+		console.error("Server Error:", error);
+		return res.status(500).json({
+			message: "Server error",
+			error: error.message,
+			stack: error.stack,
+			success: false,
+		});
 	}
 };
 

@@ -43,7 +43,7 @@ const UserSchema = new mongoose.Schema(
 				image: { type: String },
 			},
 		],
-
+		eventParticipated: [{ type: Schema.Types.ObjectId, ref: "Event" }],
 		socketId: { type: String },
 		notifications: [
 			{

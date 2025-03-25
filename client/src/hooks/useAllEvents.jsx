@@ -12,7 +12,7 @@ const useAllEvents = () => {
 			try {
 				const res = await axios.get("http://localhost:3002/student/event/list");
 
-				console.log(res.data.events);
+				// console.log(res.data.events);
 				if (res.data.success && Array.isArray(res.data.events)) {
 					// console.log("Dispatching events to Redux:", res.data.events);
 					dispatch(setEvents(res.data.events));

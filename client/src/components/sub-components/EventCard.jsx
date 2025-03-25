@@ -14,6 +14,10 @@ import {
 	Menu,
 	MenuItem,
 	ListItemIcon,
+	Typography,
+	ListItemText,
+	Divider,
+	ListItem,
 } from "@mui/material";
 import {
 	Calendar,
@@ -24,6 +28,8 @@ import {
 	Info,
 	BookOpen,
 	Clock,
+	Box,
+	List,
 } from "lucide-react";
 import useCountdown from "./useCountdown";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
@@ -39,13 +45,39 @@ import FormCreator from "../form/FormCreator";
 import DynamicRegistrationForm from "../form/DynamicRegistrationForm";
 import axios from "axios";
 import ResponseDialog from "../form/ResponseDialog";
+import ScheduleIcon from "@mui/icons-material/Schedule";
+import { useSelector } from "react-redux";
+
 const Overview = ({ description }) => (
 	<p className="text-gray-700 leading-relaxed">{description}</p>
 );
 
-const Schedule = ({ schedule }) =>
-	// ...existing Schedule component code...
-	console.log("sec");
+const Schedule = ({ schedule }) => {
+	if (!schedule || schedule.length === 0) return null;
+
+	return (
+		<div style={{ marginTop: "10px" }}>
+			<Typography
+				variant="subtitle1"
+				style={{ fontWeight: "bold" }}
+			>
+				Event Schedule
+			</Typography>
+			<Divider style={{ marginBottom: "5px" }} />
+			{schedule.map((item, index) => (
+				<div
+					key={index}
+					style={{ marginBottom: "5px" }}
+				>
+					<Typography variant="body2">
+						<strong>Time:</strong> {item.time} | <strong>Activity:</strong>{" "}
+						{item.activity}
+					</Typography>
+				</div>
+			))}
+		</div>
+	);
+};
 
 const Resources = ({ resources }) =>
 	// ...existing Resources component code...
@@ -57,6 +89,7 @@ const EventCard = ({ event, userId }) => {
 	const [responses, setResponses] = useState([]);
 	const [loadingResponses, setLoadingResponses] = useState(false);
 	const [responsesError, setResponsesError] = useState("");
+	// const { user } = useSelector((store) => store.auth);
 
 	const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
 	const [isFormRegisterOpen, setIsFormRegisterOpen] = useState(false);
@@ -104,6 +137,7 @@ const EventCard = ({ event, userId }) => {
 			setLoadingResponses(false);
 		}
 	};
+
 	const timeLeft = useCountdown(event?.countdownTime);
 
 	const handleCreateForm = () => {
@@ -124,6 +158,8 @@ const EventCard = ({ event, userId }) => {
 		hour12: true, // Convert to AM/PM format
 	});
 
+	const isRegistered = user?.eventParticipated?.includes(event._id);
+
 	return (
 		<>
 			<Card className="max-w-2xl mx-auto shadow-2xl rounded-3xl bg-gradient-to-br from-indigo-100 to-white">
@@ -141,7 +177,7 @@ const EventCard = ({ event, userId }) => {
 						</IconButton>
 					}
 				/>
-				{/* Context Menu */}
+
 				<Menu
 					anchorEl={anchorEl}
 					open={openMenu}
@@ -151,44 +187,51 @@ const EventCard = ({ event, userId }) => {
 					}}
 				>
 					{isOrganizer && [
-						<MenuItem
-							key="create-registration"
-							onClick={() => handleCreateForm("REGISTRATION")}
-						>
-							<ListItemIcon>
-								<AssignmentIcon fontSize="small" />
-							</ListItemIcon>
-							Create Registration Form
-						</MenuItem>,
-						<MenuItem
-							key="create-feedback"
-							onClick={() => handleCreateForm("FEEDBACK")}
-						>
-							<ListItemIcon>
-								<FeedbackIcon fontSize="small" />
-							</ListItemIcon>
-							Create Feedback Form
-						</MenuItem>,
-						<MenuItem
-							key="view-registrations"
-							onClick={() => handleViewResponses("REGISTRATION")}
-							disabled={loadingResponses}
-						>
-							<ListItemIcon>
-								<ListAltIcon fontSize="small" />
-							</ListItemIcon>
-							{loadingResponses ? "Loading..." : "View Registrations"}
-						</MenuItem>,
-						<MenuItem
-							key="view-feedback"
-							onClick={() => handleViewResponses("FEEDBACK")}
-							disabled={loadingResponses}
-						>
-							<ListItemIcon>
-								<FeedbackIcon fontSize="small" />
-							</ListItemIcon>
-							{loadingResponses ? "Loading..." : "View Feedback"}
-						</MenuItem>,
+						event.registrationForm ? (
+							<MenuItem
+								key="view-registrations"
+								onClick={() => handleViewResponses("REGISTRATION")}
+								disabled={loadingResponses}
+							>
+								<ListItemIcon>
+									<ListAltIcon fontSize="small" />
+								</ListItemIcon>
+								{loadingResponses ? "Loading..." : "View Registrations"}
+							</MenuItem>
+						) : (
+							<MenuItem
+								key="create-registration"
+								onClick={() => handleCreateForm("REGISTRATION")}
+							>
+								<ListItemIcon>
+									<AssignmentIcon fontSize="small" />
+								</ListItemIcon>
+								Create Registration Form
+							</MenuItem>
+						),
+
+						event.feedbackForm ? (
+							<MenuItem
+								key="view-feedback"
+								onClick={() => handleViewResponses("FEEDBACK")}
+								disabled={loadingResponses}
+							>
+								<ListItemIcon>
+									<FeedbackIcon fontSize="small" />
+								</ListItemIcon>
+								{loadingResponses ? "Loading..." : "View Feedback"}
+							</MenuItem>
+						) : (
+							<MenuItem
+								key="create-feedback"
+								onClick={() => handleCreateForm("FEEDBACK")}
+							>
+								<ListItemIcon>
+									<FeedbackIcon fontSize="small" />
+								</ListItemIcon>
+								Create Feedback Form
+							</MenuItem>
+						),
 					]}
 
 					<MenuItem onClick={handleShare}>
@@ -221,7 +264,7 @@ const EventCard = ({ event, userId }) => {
 						<span className="text-lg font-medium text-gray-700">
 							Organized by {event?.organizer?.clubName}
 						</span>
-						<span>EventId {event._id}</span>
+						{/* <span>EventId {event._id}</span> */}
 					</div>
 
 					<div className="flex items-center gap-4">
@@ -238,16 +281,22 @@ const EventCard = ({ event, userId }) => {
 					>
 						<Info className="mr-2" /> View Details
 					</Button>
-
 					<Button
 						onClick={handleClick}
 						variant="outlined"
 						color="secondary"
 						className="rounded-full"
+						disabled={
+							user?.role !== "Faculty" &&
+							user?.role !== "Alumni" &&
+							isRegistered
+						} // Disable if user is already registered
 					>
 						<BookOpen className="mr-2" />
-						{user.role === "Faculty" || user.role === "Alumni"
+						{user?.role === "Faculty" || user?.role === "Alumni"
 							? "View Applied Students"
+							: isRegistered
+							? "Already Registered"
 							: "Register Now"}
 					</Button>
 

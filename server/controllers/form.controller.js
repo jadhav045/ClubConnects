@@ -2,11 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import { Form } from "../models/Form/Form.js";
 import { Response } from "../models/Form/Response.js";
+import { Event } from "../models/Postings/Event.Model.js";
+import { User } from "../models/User.Model.js";
 
 const router = express.Router();
 
 router.post("/create", async (req, res) => {
-	console.log("Ar backend");
 	try {
 		const {
 			entityType,
@@ -18,7 +19,6 @@ router.post("/create", async (req, res) => {
 			creatorType,
 		} = req.body;
 
-		console.log("BAc", req.body);
 		// Validate required fields
 		if (
 			!entityType ||
@@ -42,17 +42,34 @@ router.post("/create", async (req, res) => {
 			return res.status(400).json({ error: "Invalid creator type" });
 		}
 
-		const existingForm = await Form.findOne({
-			entityType,
-			entityId,
-			formType,
-		});
+		// Check if the entity type is valid
+		if (!["Event", "Opportunity"].includes(entityType)) {
+			return res.status(400).json({ error: "Invalid entity type" });
+		}
 
-		if (existingForm) {
+		let EntityModel = "";
+		if (entityType === "Event") {
+			EntityModel = Event;
+		} else {
+			EntityModel = Opportunity;
+		}
+		console.log("MODEL", EntityModel);
+		const entity = await EntityModel.findById(entityId);
+		if (!entity) {
+			return res.status(404).json({ error: `${entityType} not found` });
+		}
+
+		// Ensure the entity does not already have a form of this type
+		if (
+			(formType === "REGISTRATION" && entity.registrationForm) ||
+			(formType === "FEEDBACK" && entity.feedbackForm)
+		) {
 			return res.status(400).json({
 				error: `This ${entityType.toLowerCase()} already has a ${formType.toLowerCase()} form`,
 			});
 		}
+
+		// Create the form
 		const newForm = new Form({
 			entityType,
 			entityId,
@@ -64,12 +81,22 @@ router.post("/create", async (req, res) => {
 		});
 
 		await newForm.save();
+
+		// Update the entity with the form reference
+		if (formType === "REGISTRATION") {
+			entity.registrationForm = newForm._id;
+		} else if (formType === "FEEDBACK") {
+			entity.feedbackForm = newForm._id;
+		}
+
+		await entity.save();
+
 		return res
 			.status(201)
 			.json({ message: `${formType} Form Created`, form: newForm });
 	} catch (error) {
+		console.error("Server Error:", error); // Log full error details
 		if (error.code === 11000) {
-			// Handle duplicate key error from MongoDB unique index
 			return res.status(400).json({
 				error: "This event already has a form of this type.",
 			});
@@ -81,12 +108,12 @@ router.post("/create", async (req, res) => {
 router.post("/submit", async (req, res) => {
 	try {
 		const { formId, entityType, entityId, userId, answers } = req.body;
-		// Validate input fields
+
+		console.log(req.body);
 		if (!formId || !entityType || !entityId || !userId || !answers.length) {
 			return res.status(400).json({ error: "All fields are required" });
 		}
 
-		// Check if the form exists
 		const form = await Form.findById(formId);
 		if (!form) {
 			return res.status(404).json({ error: "Form not found" });
@@ -97,7 +124,7 @@ router.post("/submit", async (req, res) => {
 			form: formId,
 			user: userId,
 		});
-		console.log(existingResponse);
+
 		if (existingResponse) {
 			return res
 				.status(400)
@@ -113,17 +140,49 @@ router.post("/submit", async (req, res) => {
 			answers,
 		});
 
+		// If the form is a registration form, update the User model
+		if (form.formType === "REGISTRATION") {
+			const user = await User.findById(userId);
+			if (!user) {
+				return res.status(404).json({ error: "User not found" });
+			}
+
+			// Add eventId to eventsParticipated if not already present
+			if (!user?.eventParticipated?.includes(entityId)) {
+				user?.eventParticipated?.push(entityId);
+				await user.save();
+			}
+		}
 		await newResponse.save();
 
-		// Determine the response message based on form type
 		const message =
 			form.formType === "REGISTRATION"
 				? "Registration Form Submitted"
 				: "Feedback Form Submitted";
 
-		return res.status(201).json({ message, response: newResponse });
+		return res
+			.status(201)
+			.json({ message, response: newResponse, success: true });
 	} catch (error) {
-		res.status(500).json({ error: "Server Error", details: error.message });
+		console.error("Error in /submit:", error); // Log error for debugging
+
+		// Handle specific error cases
+		if (error.name === "ValidationError") {
+			return res
+				.status(400)
+				.json({ error: "Validation error", details: error.message });
+		}
+
+		if (error.name === "CastError") {
+			return res
+				.status(400)
+				.json({ error: "Invalid ID format", details: error.message });
+		}
+
+		// Generic server error
+		return res
+			.status(500)
+			.json({ error: "Server Error", details: error.message });
 	}
 });
 
@@ -177,7 +236,7 @@ const getEntityForms = async (req, res) => {
 			});
 		}
 
-		console.log(forms);
+		// console.log(forms);
 		// If multiple form types are requested, return them in an object
 		const result = requestedTypes.reduce((acc, type) => {
 			acc[type.toLowerCase()] = forms.find((f) => f.formType === type) || null;

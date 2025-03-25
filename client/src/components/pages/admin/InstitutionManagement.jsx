@@ -13,24 +13,6 @@ const InstitutionManagement = () => {
 
 	return (
 		<div>
-			<button
-				onClick={() => handleOpen("college")}
-				className="bg-green-500 text-white p-2 rounded"
-			>
-				Add College
-			</button>
-
-			{openForm === "college" && <AddCollege onClose={handleClose} />}
-
-			<button
-				onClick={() => handleOpen("faculty")}
-				className="bg-green-500 text-white p-2 rounded ml-4"
-			>
-				Add Faculty
-			</button>
-
-			{openForm === "faculty" && <AddFaculty onClose={handleClose} />}
-			<FacultyList />
 			<CollegeList />
 		</div>
 	);

@@ -29,7 +29,7 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 
 	// Using the custom hook
 	const { formData, handleChange, handleSubmit, setFormData } =
-		useCreateEventForm(onSuccess);
+		useCreateEventForm(onSuccess, onClose);
 
 	return (
 		<Dialog
@@ -206,28 +206,6 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 									},
 								}}
 							/>
-
-							<TextField
-								label="Registration Link"
-								name="registerLink"
-								value={formData.registerLink}
-								onChange={handleChange}
-								fullWidth
-								InputProps={{
-									startAdornment: (
-										<InputAdornment position="start">
-											<LinkIcon />
-										</InputAdornment>
-									),
-								}}
-								sx={{
-									mt: 2,
-									"& .MuiOutlinedInput-root": {
-										borderRadius: 2,
-										transition: "all 0.3s ease",
-									},
-								}}
-							/>
 						</Paper>
 					</Grid>
 
@@ -253,7 +231,7 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 								setData={(data) =>
 									setFormData((prev) => ({ ...prev, schedule: data }))
 								}
-								fields={["time", "activity", "speaker"]}
+								fields={["time", "activity"]}
 							/>
 						</Paper>
 					</Grid>

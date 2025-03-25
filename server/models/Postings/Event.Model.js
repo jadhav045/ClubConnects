@@ -30,11 +30,6 @@ const EventSchema = new mongoose.Schema(
 			{
 				time: String,
 				activity: String,
-				speaker: {
-					name: String,
-					title: String,
-					photo: String,
-				},
 			},
 		],
 		resources: [
@@ -48,6 +43,7 @@ const EventSchema = new mongoose.Schema(
 				description: { type: String }, // Optional description
 			},
 		],
+
 		organizer: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Club",
@@ -58,37 +54,38 @@ const EventSchema = new mongoose.Schema(
 			ref: "User",
 			default: [],
 		},
+
 		registrationDeadline: { type: Date },
+
 		registrationStatus: {
 			type: String,
 			enum: ["OPEN", "CLOSED", "CANCELLED"],
 			default: "OPEN",
 		},
-		// In your Event model
+
 		registrationForm: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Form",
 			default: null,
 		},
+
 		feedbackForm: {
 			type: mongoose.Schema.Types.ObjectId,
 			ref: "Form",
 			default: null,
 		},
 
-		requestUniqueId: { type: String, required: true, unique: true },
-
 		createdAt: { type: Date, default: Date.now },
 		updatedAt: { type: Date, default: Date.now },
+
 		tags: {
 			type: [String],
 			default: [],
 		},
+
 		maxParticipants: { type: Number },
 	},
 
 	{ timestamps: true }
 );
 export const Event = mongoose.model("Event", EventSchema);
-
-// Let me know if you want me to add anything else! 🚀

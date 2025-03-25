@@ -5,6 +5,9 @@ import { useDispatch } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { logoutUser } from "../store/slice/authSlice";
+import { removeAllClubs } from "../store/slice/clubSlice";
+import { removeAllEvents } from "../store/slice/eventSlice";
+import { removeAllPosts, removePost } from "../store/slice/postSlice";
 
 const Logout = () => {
 	const navigate = useNavigate();
@@ -13,6 +16,9 @@ const Logout = () => {
 	const handleLogout = async () => {
 		try {
 			await axios.post("http://localhost:3002/auth/logout");
+			dispatch(removeAllClubs());
+			dispatch(removeAllEvents());
+			dispatch(removeAllPosts());
 			dispatch(logoutUser()); // Clear Redux auth state
 			toast.success("Logout successful");
 			navigate("/login"); // Navigate to the login page

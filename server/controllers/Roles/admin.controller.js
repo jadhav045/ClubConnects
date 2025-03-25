@@ -4,6 +4,7 @@ import { Faculty } from "../../models/Roles/Faculty.Model.js";
 import { StudentAlumni } from "../../models/Roles/StudentAlumni.Model.js";
 import { User } from "../../models/User.Model.js";
 import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
 export const createCollege = async (req, res) => {
 	console.log("We are here");
 	try {
@@ -154,13 +155,27 @@ export const createFacultyFn = async (req, res) => {
 
 // store in redux then sort out with college id
 export const getAllFacultiesList = async (req, res) => {
+	// console.log(req.params);
 	const { collegeId } = req.params;
+	console.log(collegeId);
+	// const collegeId = "67de441a8426857e3adc43e2";
 	try {
-		// Fetch faculty users linked to the given collegeId and populate profile data
-		const faculties = await User.find({
-			role: "Faculty",
-			college: collegeId,
-		}).populate("profileId");
+		const faculties = await User.find({ role: "Faculty" })
+			.select("email fullName profileId")
+			.populate({
+				path: "profileId",
+				model: "Faculty",
+				select: "subRole college",
+				match: { college: collegeId }, // Ensures only faculty from the correct college
+			})
+			.lean();
+
+		// Manually filter out users where profileId is null (no match found)
+		const filteredFaculties = faculties.filter(
+			(faculty) => faculty.profileId !== null
+		);
+
+		console.log(filteredFaculties);
 
 		// Handle case when no faculty users are found
 		if (!faculties || faculties.length === 0) {
@@ -170,10 +185,10 @@ export const getAllFacultiesList = async (req, res) => {
 		}
 
 		// Return the list of faculties
-		res.status(200).json({
+		return res.status(200).json({
 			message: "Faculty list retrieved successfully",
 			success: true,
-			data: faculties,
+			data: filteredFaculties,
 		});
 	} catch (error) {
 		// Handle unexpected server errors
@@ -189,10 +204,12 @@ export const getAllFacultiesList = async (req, res) => {
 
 export const getAllCollegeList = async (req, res) => {
 	try {
-		const colleges = await College.find().populate({
-			path: "adminDetails.createdBy",
-			select: "fullName email", // Only fetch fullName and email
-		});
+		const colleges = await College.find()
+			.select("name collegeCode universityAffiliation")
+			.populate({
+				path: "adminDetails.createdBy",
+				select: "fullName email", // Only fetch fullName and email
+			});
 
 		// Handle case when no colleges are found
 		if (!colleges || colleges.length === 0) {
@@ -209,6 +226,50 @@ export const getAllCollegeList = async (req, res) => {
 		console.error("Error fetching college list:", error);
 		res.status(500).json({
 			message: "Server error while fetching college list",
+			error: error.message,
+		});
+	}
+};
+
+export const getAllUsers = async (req, res) => {
+	try {
+		console.log("Fetching users...");
+
+		const { search = "", limit = 10, page = 1 } = req.query; // Extract search and pagination params
+
+		// Define search criteria (e.g., search by name or email)
+		const filter = search
+			? {
+					$or: [
+						{ name: { $regex: search, $options: "i" } }, // Case-insensitive search by name
+						{ email: { $regex: search, $options: "i" } }, // Case-insensitive search by email
+					],
+			  }
+			: {};
+
+		// Fetch users with pagination and populate profile details
+		const users = await User.find(filter)
+			.select("name email _id") // Select only required fields
+			.populate("profileId", "bio profilePicture") // Populate specific fields from profileId
+			.limit(parseInt(limit)) // Limit number of results
+			.skip((parseInt(page) - 1) * parseInt(limit)); // Implement pagination
+
+		// Get total count of users for frontend pagination
+		const totalUsers = await User.countDocuments(filter);
+
+		return res.status(200).json({
+			users,
+			totalUsers,
+			currentPage: parseInt(page),
+			totalPages: Math.ceil(totalUsers / limit),
+			message: "Users fetched successfully",
+			success: true,
+		});
+	} catch (error) {
+		console.error("Error fetching users:", error);
+		return res.status(500).json({
+			message: "Failed to fetch users",
+			success: false,
 			error: error.message,
 		});
 	}

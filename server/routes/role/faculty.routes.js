@@ -3,6 +3,7 @@ import express from "express";
 import {
 	assignRoleFn,
 	createClubFn,
+	getAllClubs,
 } from "../../controllers/Roles/faculty.controller.js";
 import {
 	updateCollegeProfile,
@@ -48,5 +49,6 @@ router.get(
 	authenticateRequestClub
 );
 
+router.get("/clubs/list", getAllClubs);
 
 export default router;

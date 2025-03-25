@@ -44,84 +44,133 @@ const AddCollege = ({ onClose }) => {
 	};
 
 	return (
-		<div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-			<div className="bg-white max-w-md w-full p-6 rounded-lg shadow-lg relative">
-				{/* Close Button */}
-				<button
-					onClick={onClose}
-					className="absolute top-2 right-2 text-gray-600 hover:text-red-500"
-				>
-					<X size={24} />
-				</button>
-
-				<h2 className="text-xl font-bold mb-4">Add College</h2>
-
-				<FormLayout
-					title="Add College"
-					onSubmit={handleSubmit}
-				>
-					<input
-						type="text"
-						name="name"
-						placeholder="College Name"
-						value={collegeData.name}
-						onChange={handleChange}
-						className="input-field"
-						required
-					/>
-					<input
-						type="text"
-						name="collegeCode"
-						placeholder="College Code"
-						value={collegeData.collegeCode}
-						onChange={handleChange}
-						className="input-field"
-						required
-					/>
-					<input
-						type="text"
-						name="universityAffiliation"
-						placeholder="University Affiliation"
-						value={collegeData.universityAffiliation}
-						onChange={handleChange}
-						className="input-field"
-						required
-					/>
-					<input
-						type="text"
-						name="address"
-						placeholder="Address"
-						value={collegeData.address}
-						onChange={handleChange}
-						className="input-field"
-						required
-					/>
-					<input
-						type="text"
-						name="contactInfo"
-						placeholder="Contact Info"
-						value={collegeData.contactInfo}
-						onChange={handleChange}
-						className="input-field"
-						required
-					/>
-					<input
-						type="number"
-						name="establishedYear"
-						placeholder="Established Year"
-						value={collegeData.establishedYear}
-						onChange={handleChange}
-						className="input-field"
-						required
-					/>
-
+		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+			<div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl relative mx-2">
+				{/* Header Section */}
+				<div className="p-6 border-b border-gray-200 flex items-center justify-between">
+					<h2 className="text-2xl font-bold text-gray-800">Add New College</h2>
 					<button
-						type="submit"
-						className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 w-full"
+						onClick={onClose}
+						className="p-1 rounded-full hover:bg-gray-100 transition-colors"
+						aria-label="Close"
 					>
-						Create College
+						<X className="w-6 h-6 text-gray-600" />
 					</button>
-				</FormLayout>
+				</div>
+
+				{/* Form Section */}
+				<div className="p-6 space-y-6">
+					<FormLayout onSubmit={handleSubmit}>
+						<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+							{/* College Information Group */}
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										College Name <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										name="name"
+										value={collegeData.name}
+										onChange={handleChange}
+										className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+										placeholder="Enter college name"
+										required
+									/>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										College Code <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										name="collegeCode"
+										value={collegeData.collegeCode}
+										onChange={handleChange}
+										className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+										placeholder="Enter unique code"
+										required
+									/>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										Established Year <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="number"
+										name="establishedYear"
+										value={collegeData.establishedYear}
+										onChange={handleChange}
+										className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+										placeholder="e.g., 1990"
+										min="1900"
+										max={new Date().getFullYear()}
+										required
+									/>
+								</div>
+							</div>
+
+							{/* Contact Information Group */}
+							<div className="space-y-4">
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										University Affiliation{" "}
+										<span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										name="universityAffiliation"
+										value={collegeData.universityAffiliation}
+										onChange={handleChange}
+										className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+										placeholder="Affiliated university"
+										required
+									/>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										Contact Information <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										name="contactInfo"
+										value={collegeData.contactInfo}
+										onChange={handleChange}
+										className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+										placeholder="Phone number or email"
+										required
+									/>
+								</div>
+
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-1">
+										Full Address <span className="text-red-500">*</span>
+									</label>
+									<input
+										type="text"
+										name="address"
+										value={collegeData.address}
+										onChange={handleChange}
+										className="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+										placeholder="Street, City, State"
+										required
+									/>
+								</div>
+							</div>
+						</div>
+
+						{/* Submit Button */}
+						<button
+							type="submit"
+							className="w-full mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+						>
+							Create College
+						</button>
+					</FormLayout>
+				</div>
 			</div>
 		</div>
 	);

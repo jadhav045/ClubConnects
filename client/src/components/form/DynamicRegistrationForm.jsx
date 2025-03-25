@@ -20,8 +20,10 @@ import {
 } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { setAuthUser } from "../../store/slice/authSlice";
 
+// Wrapper Component for Questions
 const QuestionWrapper = ({ children, required, label }) => (
 	<FormControl
 		fullWidth
@@ -29,22 +31,43 @@ const QuestionWrapper = ({ children, required, label }) => (
 		required={required}
 		component="fieldset"
 	>
-		<FormLabel component="legend">{label}</FormLabel>
-		{children}
+		<FormLabel
+			component="legend"
+			sx={{ fontWeight: 600, fontSize: "1.1rem" }}
+		>
+			{label}{" "}
+			{required && (
+				<Typography
+					component="span"
+					color="error"
+				>
+					*
+				</Typography>
+			)}
+		</FormLabel>
+		<Box mt={1}>{children}</Box>
 	</FormControl>
 );
 
-// Question Components
-const TextQuestion = ({ value, onChange, required }) => (
+// Text Input Question
+const TextQuestion = ({
+	value,
+	onChange,
+	required,
+	placeholder = "Type your answer...",
+}) => (
 	<TextField
 		fullWidth
 		value={value}
 		onChange={(e) => onChange(e.target.value)}
 		variant="outlined"
 		required={required}
+		placeholder={placeholder}
+		sx={{ bgcolor: "white", borderRadius: 1 }}
 	/>
 );
 
+// Multiple Choice (Radio Button) Question
 const MultipleChoiceQuestion = ({ value, onChange, options }) => (
 	<RadioGroup
 		value={value}
@@ -54,15 +77,17 @@ const MultipleChoiceQuestion = ({ value, onChange, options }) => (
 			<FormControlLabel
 				key={option}
 				value={option}
-				control={<Radio />}
+				control={<Radio color="primary" />}
 				label={option}
+				sx={{ mt: 0.5 }}
 			/>
 		))}
 	</RadioGroup>
 );
 
+// Checkbox (Multiple Selection) Question
 const CheckboxQuestion = ({ value = [], onChange, options }) => (
-	<Stack>
+	<Stack spacing={1}>
 		{options.map((option) => (
 			<FormControlLabel
 				key={option}
@@ -75,6 +100,7 @@ const CheckboxQuestion = ({ value = [], onChange, options }) => (
 								: value.filter((v) => v !== option);
 							onChange(newValue);
 						}}
+						color="primary"
 					/>
 				}
 				label={option}
@@ -83,12 +109,14 @@ const CheckboxQuestion = ({ value = [], onChange, options }) => (
 	</Stack>
 );
 
+// Dropdown (Select) Question
 const DropdownQuestion = ({ value, onChange, options }) => (
 	<Select
 		fullWidth
 		value={value}
 		onChange={(e) => onChange(e.target.value)}
 		displayEmpty
+		sx={{ bgcolor: "white", borderRadius: 1 }}
 	>
 		<MenuItem
 			value=""
@@ -107,11 +135,14 @@ const DropdownQuestion = ({ value, onChange, options }) => (
 	</Select>
 );
 
+// Rating Question
 const RatingQuestion = ({ value, onChange }) => (
 	<MuiRating
 		precision={0.5}
 		value={Number(value)}
 		onChange={(_, newValue) => onChange(newValue)}
+		size="large"
+		sx={{ mt: 1 }}
 	/>
 );
 
@@ -124,7 +155,6 @@ const useFormFetcher = (entityType, entityId) => {
 
 	const fetchForm = async (formType) => {
 		try {
-			console.log(entityId);
 			const response = await axios.get(
 				`http://localhost:3002/form/${entityType}/${entityId}?formType=${formType}`,
 				{
@@ -138,9 +168,15 @@ const useFormFetcher = (entityType, entityId) => {
 				initialAnswers: response.data.answers,
 			};
 		} catch (err) {
-			const errorMessage = err.response?.data?.message || "Failed to load form";
-			setError(errorMessage);
-			toast.error(errorMessage, { position: "top-right" }); // Display error notification
+			console.error("Error loading form:", err); // Log error for debugging
+
+			// Extract a meaningful error message
+			const errorMessage =
+				err.response?.data?.error || err.message || "Failed to load form";
+
+			setError(errorMessage); // Set error state
+			toast.error(errorMessage, { position: "top-right" }); // Show toast notification
+
 			return null;
 		} finally {
 			setLoading(false);
@@ -155,6 +191,9 @@ const useFormSubmission = () => {
 	const [submitSuccess, setSubmitSuccess] = useState(false);
 	const [error, setError] = useState(null);
 
+	const authUser = useSelector((store) => store.auth.user);
+
+	const dispatch = useDispatch();
 	const submitForm = async (
 		formData,
 		answers,
@@ -163,7 +202,6 @@ const useFormSubmission = () => {
 		userId
 	) => {
 		try {
-			console.log(userId || "no");
 			setSubmitting(true);
 			const res = await axios.post(`http://localhost:3002/form/submit`, {
 				formId: formData._id,
@@ -172,17 +210,36 @@ const useFormSubmission = () => {
 				userId,
 				answers,
 			});
-			console.log(res.data);
-			console.log();
+
+			// After successful registration
+			if (res.data.success) {
+				dispatch(
+					setAuthUser({
+						...authUser, // Spread existing user data
+						eventParticipated: [
+							...(authUser.eventParticipated || []),
+							entityId,
+						],
+					})
+				);
+			}
+
+			// console.log(res.data);
 			setSubmitSuccess(true);
 			setError(null);
 			toast.success("Form submitted successfully!", { position: "top-right" }); // ✅ Success Toast
 			return true;
 		} catch (err) {
-			const errorMessage = err.response?.data?.message || "Submission failed";
-			setError(errorMessage);
-			toast.error(errorMessage, { position: "top-right" }); // ❌ Error Toast
-			return false;
+			console.error("Error loading form:", err); // Log error for debugging
+
+			// Extract a meaningful error message
+			const errorMessage =
+				err.response?.data?.error || err.message || "Failed to load form";
+
+			setError(errorMessage); // Set error state
+			toast.error(errorMessage, { position: "top-right" }); // Show toast notification
+
+			return null;
 		} finally {
 			setSubmitting(false);
 		}
@@ -286,34 +343,39 @@ const DynamicRegistrationForm = ({ entityType, entityId, onClose }) => {
 
 	return (
 		<Container
-			maxWidth="md"
-			sx={{ py: 4 }}
+			maxWidth="lg"
+			sx={{ py: 4, px: isMobile ? 2 : 4 }}
 		>
 			<Box
 				display="flex"
-				justifyContent="flex-end"
-				mb={2}
+				justifyContent="space-between"
+				alignItems="center"
+				mb={4}
 			>
+				<Typography
+					variant="h4"
+					component="h1"
+					sx={{ fontWeight: 700 }}
+				>
+					{formData?.title || "Registration Form"}
+				</Typography>
 				<Button
 					variant="outlined"
 					onClick={onClose}
 					disabled={submitting}
+					sx={{ minWidth: 100 }}
 				>
 					Close
 				</Button>
 			</Box>
 
-			{loading && (
-				<CircularProgress sx={{ display: "block", margin: "20px auto" }} />
-			)}
-
-			<Box mt={2}>
-				{error && (
+			<Box mb={4}>
+				{fetchError && (
 					<Alert
 						severity="error"
 						sx={{ mb: 2 }}
 					>
-						{error}
+						{fetchError}
 					</Alert>
 				)}
 				{submitError && (
@@ -334,40 +396,42 @@ const DynamicRegistrationForm = ({ entityType, entityId, onClose }) => {
 				)}
 			</Box>
 
-			{formData && !loading && (
+			{formData && (
 				<form onSubmit={handleSubmit}>
-					<Typography
-						variant="h4"
-						gutterBottom
-						sx={{ mb: 4 }}
+					<Grid
+						container
+						spacing={3}
 					>
-						{formData.title}
-					</Typography>
-
-					{formData.questions?.map((question) => (
-						<QuestionWrapper
-							key={question._id}
-							required={question.required}
-							label={question.questionText}
-						>
-							{renderQuestion(question)}
-						</QuestionWrapper>
-					))}
+						{questionComponents}
+					</Grid>
 
 					<Stack
 						direction="row"
 						spacing={2}
 						justifyContent="flex-end"
-						mt={4}
+						mt={6}
+						sx={{ px: isMobile ? 0 : 2 }}
 					>
 						<Button
 							type="submit"
 							variant="contained"
 							size="large"
 							disabled={submitting}
-							sx={{ minWidth: 120 }}
+							sx={{
+								minWidth: 140,
+								py: 1.5,
+								fontWeight: 600,
+								textTransform: "none",
+							}}
 						>
-							{submitting ? <CircularProgress size={24} /> : "Submit"}
+							{submitting ? (
+								<CircularProgress
+									size={24}
+									sx={{ color: "white" }}
+								/>
+							) : (
+								"Submit Registration"
+							)}
 						</Button>
 					</Stack>
 				</form>

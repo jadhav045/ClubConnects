@@ -2,117 +2,285 @@ import { Post } from "../../models/Postings/Post.Model.js";
 import { Event } from "../../models/Postings/Event.Model.js";
 import { Club } from "../../models/Roles/Club.Model.js";
 import { User } from "../../models/User.Model.js";
+import { Poll } from "../../models/Postings/Poll.Model.js";
 
-export const createPost = async (req, res) => {
+export const createPoll = async (req, res) => {
 	try {
 		const {
-			content,
+			pollQuestion,
+			text,
+			pollOptions,
+			endDate,
+			isPublic,
+			allowMultipleVotes,
+			clubId,
+		} = req.body;
+
+		// Validation
+		if (!pollQuestion || !pollOptions?.length || pollOptions.length < 2) {
+			return res.status(400).json({
+				message: "Poll question and at least two options are required",
+			});
+		}
+
+		if (!endDate) {
+			return res.status(400).json({
+				message: "End date is required",
+			});
+		}
+
+		// Create new poll
+		const newPoll = new Poll({
+			authorId: req.user.id,
+			authorRole: req.user.role,
+			clubId: clubId || null,
+			pollQuestion,
+			text: text || "",
+			pollOptions: pollOptions.map((option) => ({
+				optionText: option.optionText,
+				votes: 0,
+			})),
+			endDate,
+			isPublic: isPublic ?? true,
+			allowMultipleVotes: allowMultipleVotes ?? false,
+			totalVotes: 0,
+		});
+
+		const savedPoll = await newPoll.save();
+
+		// Update club or user references
+		if (clubId) {
+			await Club.findByIdAndUpdate(clubId, {
+				$push: { polls: savedPoll._id },
+			});
+		} else {
+			await User.findByIdAndUpdate(req.user.id, {
+				$push: { polls: savedPoll._id },
+			});
+		}
+
+		res.status(201).json({
+			message: "Poll created successfully",
+			poll: savedPoll,
+		});
+	} catch (err) {
+		console.error("Error creating poll:", err);
+		res.status(500).json({
+			message: "Server error",
+			error: err.message,
+		});
+	}
+};
+
+export const createPost = async (req, res) => {
+	console.log("Request received:", req.body);
+
+	try {
+		const {
+			text,
 			category,
 			tags,
 			clubId,
 			eventId,
-			visibility,
-			poll,
+			isPublic,
 			mentions,
+			attachments,
 		} = req.body;
 
-		let club = null;
+		// **1. Basic Validation**
+		if (!text || typeof text !== "string") {
+			return res
+				.status(400)
+				.json({ message: "Text content is required and must be a string." });
+		}
+
+		if (category && typeof category !== "string") {
+			return res.status(400).json({ message: "Category must be a string." });
+		}
+
+		if (tags && !Array.isArray(tags)) {
+			return res.status(400).json({ message: "Tags must be an array." });
+		}
+
+		if (mentions && !Array.isArray(mentions)) {
+			return res.status(400).json({ message: "Mentions must be an array." });
+		}
+
+		if (attachments && !Array.isArray(attachments)) {
+			return res.status(400).json({ message: "Attachments must be an array." });
+		}
+
+		// **2. Check if the Club exists (if provided)**
+		let clubExists = null;
 		if (clubId) {
-			club = await Club.findById(clubId);
-			if (!club) {
-				return res.status(404).json({ message: "Club not found" });
+			try {
+				clubExists = await Club.findById(clubId);
+				if (!clubExists) {
+					return res.status(404).json({ message: "Club not found." });
+				}
+			} catch (error) {
+				console.error("Error checking club existence:", error);
+				return res.status(500).json({
+					message: "Error checking club existence.",
+					error: error.message,
+				});
 			}
 		}
 
+		// **3. Check if the Event exists (if provided)**
+		let eventExists = null;
 		if (eventId) {
-			const event = await Event.findById(eventId);
-			if (!event) {
-				return res.status(404).json({ message: "Event not found" });
+			try {
+				eventExists = await Event.findById(eventId);
+				if (!eventExists) {
+					return res.status(404).json({ message: "Event not found." });
+				}
+			} catch (error) {
+				console.error("Error checking event existence:", error);
+				return res.status(500).json({
+					message: "Error checking event existence.",
+					error: error.message,
+				});
 			}
 		}
 
-		// Create new post
-		const newPost = new Post({
-			author: {
-				userId: req.user.id,
-				role: req.user.role,
-			},
-			content,
-			category,
-			tags,
-			clubId: clubId || null,
-			eventId: eventId || null,
-			visibility,
-			poll,
-			mentions,
-		});
+		// **4. Create a New Post**
+		let newPost;
+		try {
+			newPost = new Post({
+				authorId: req.user.id,
+				authorRole: req.user.role,
+				text,
+				category,
+				tags,
+				clubId: clubId || null,
+				eventId: eventId || null,
+				isPublic: isPublic ?? true, // Default to true if not provided
+				mentions,
+				attachments: attachments || [],
+			});
+		} catch (error) {
+			console.error("Error creating post object:", error);
+			return res
+				.status(500)
+				.json({ message: "Error creating post object.", error: error.message });
+		}
 
-		const savedPost = await newPost.save();
+		// **5. Save Post to Database**
+		let savedPost;
+		try {
+			savedPost = await newPost.save();
+		} catch (error) {
+			console.error("Error saving post to database:", error);
+			return res
+				.status(500)
+				.json({ message: "Error saving post.", error: error.message });
+		}
 
-		if (club) {
-			await Club.findByIdAndUpdate(clubId, {
+		// **6. Update the Relevant Entity (Club/User)**
+		try {
+			const updateTarget = clubId ? Club : User;
+			const updateId = clubId || req.user.id;
+			await updateTarget.findByIdAndUpdate(updateId, {
 				$push: { posts: savedPost._id },
 			});
-		} else {
-			await User.findByIdAndUpdate(req.user.id, {
-				$push: { posts: savedPost._id },
+		} catch (error) {
+			console.error("Error updating post references:", error);
+			return res.status(500).json({
+				message: "Error updating post references.",
+				error: error.message,
 			});
 		}
 
-		res.status(201).json(savedPost);
+		// **7. Return Success Response**
+		return res.status(201).json({
+			savedPost,
+			message: "Post successfully added.",
+			success: true,
+		});
 	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
+		console.error("Unexpected server error:", err);
+		return res
+			.status(500)
+			.json({ message: "Internal Server Error", error: err.message });
+	}
+};
+
+export const replyPoll = async (req, res) => {
+	try {
+		const { pollId, optionId } = req.body;
+		const userId = req.user.id;
+
+		// Find the poll
+		const poll = await Poll.findById(pollId);
+		if (!poll) {
+			return res.status(404).json({
+				message: "Poll not found",
+			});
+		}
+
+		// Check if poll is still active
+		if (!poll.isActive) {
+			return res.status(400).json({
+				message: "This poll has ended",
+			});
+		}
+
+		// Check if user has already voted
+		const hasVoted = poll.votes.some(
+			(vote) => vote.userId.toString() === userId
+		);
+
+		if (hasVoted && !poll.allowMultipleVotes) {
+			return res.status(400).json({
+				message: "You have already voted in this poll",
+			});
+		}
+
+		// Find the option
+		const option = poll.pollOptions.id(optionId);
+		if (!option) {
+			return res.status(400).json({
+				message: "Invalid poll option",
+			});
+		}
+
+		try {
+			// Use the vote method from the Poll model
+			await poll.vote(userId, optionId);
+
+			return res.status(200).json({
+				message: "Vote recorded successfully",
+				poll: await Poll.findById(pollId),
+			});
+		} catch (error) {
+			return res.status(400).json({
+				message: error.message,
+			});
+		}
+	} catch (err) {
+		console.error("Error recording vote:", err);
+		res.status(500).json({
+			message: "Server error",
+			error: err.message,
+		});
 	}
 };
 
 export const getAllPosts = async (req, res) => {
 	try {
 		const posts = await Post.find()
-			.populate("author.userId", "username profilePicture")
+			.populate("authorId", "fullName profilePicture")
 			.populate("clubId", "name")
 			.sort({ createdAt: -1 });
 
-		console.log("Ppsts", posts);
+		console.log("Posts", posts);
 		return res.json({
-			message: "Post fetch successfully",
+			message: "Posts fetched successfully",
 			success: true,
 			posts,
+			totalPosts: posts.length,
 		});
-	} catch (err) {
-		res.status(500).json({ message: "Server error", error: err.message });
-	}
-};
-
-export const getPostById = async (req, res) => {
-	try {
-		let post;
-
-		if (req.query.clubId) {
-			const club = await Club.findById(req.query.clubId).populate({
-				path: "posts",
-				match: { _id: req.params.id },
-				populate: [
-					{ path: "author.userId", select: "username role" },
-					{ path: "mentions", select: "username" },
-				],
-			});
-
-			if (!club) {
-				return res.status(404).json({ message: "Club not found" });
-			}
-
-			post = club.posts.length ? club.posts[0] : null;
-		} else {
-			post = await Post.findById(req.params.id)
-				.populate("author.userId", "username role")
-				.populate("mentions", "username");
-		}
-
-		if (!post) {
-			return res.status(404).json({ message: "Post not found" });
-		}
-
-		res.json(post);
 	} catch (err) {
 		res.status(500).json({ message: "Server error", error: err.message });
 	}
@@ -121,11 +289,22 @@ export const getPostById = async (req, res) => {
 export const updatePost = async (req, res) => {
 	try {
 		const { id } = req.params;
-		const { clubId, content, category, tags, visibility, poll, mentions } =
-			req.body;
+		const {
+			clubId,
+			text,
+			category,
+			tags,
+			isPublic,
+			allowedRoles,
+			pollQuestion,
+			pollOptions,
+			mentions,
+			attachments,
+		} = req.body;
 
 		let post;
 
+		// If the post is linked to a club, fetch it from there
 		if (clubId) {
 			const club = await Club.findById(clubId).populate("posts");
 
@@ -139,28 +318,49 @@ export const updatePost = async (req, res) => {
 				return res.status(404).json({ message: "Post not found in this club" });
 			}
 		} else {
+			// Otherwise, fetch it normally
 			post = await Post.findById(id);
 			if (!post) {
 				return res.status(404).json({ message: "Post not found" });
 			}
 		}
 
-		if (post.author.userId.toString() !== req.user.id) {
+		// Check if the user is the author
+		if (post.authorId.toString() !== req.user.id) {
 			return res
 				.status(403)
 				.json({ message: "Not authorized to update this post" });
 		}
 
-		post.content = content || post.content;
+		// Update fields
+		post.text = text || post.text;
 		post.category = category || post.category;
 		post.tags = tags || post.tags;
-		post.visibility = visibility || post.visibility;
-		post.poll = poll || post.poll;
+		post.isPublic = isPublic !== undefined ? isPublic : post.isPublic;
+		post.allowedRoles = allowedRoles || post.allowedRoles;
 		post.mentions = mentions || post.mentions;
+
+		// Update attachments if provided
+		if (attachments) {
+			post.attachments = attachments.map((file) => ({
+				fileUrl: file.fileUrl,
+				fileType: file.fileType,
+			}));
+		}
+
+		// Update poll if provided
+		if (pollQuestion) {
+			post.pollQuestion = pollQuestion;
+			post.pollOptions =
+				pollOptions?.map((option) => ({
+					optionText: option.optionText,
+					votes: option.votes || 0,
+				})) || [];
+		}
 
 		await post.save();
 
-		return res.json(post);
+		return res.json({ message: "updated successfully", success: true, post });
 	} catch (err) {
 		return res
 			.status(500)
@@ -175,6 +375,7 @@ export const deletePost = async (req, res) => {
 
 		let post;
 
+		// If the post belongs to a club
 		if (clubId) {
 			const club = await Club.findById(clubId);
 
@@ -188,33 +389,40 @@ export const deletePost = async (req, res) => {
 				return res.status(404).json({ message: "Post not found in this club" });
 			}
 
+			// Check if the user is the author or an Admin
 			if (
-				post.author.userId.toString() !== req.user.id &&
+				post.authorId.toString() !== req.user.id &&
 				req.user.role !== "Admin"
 			) {
 				return res.status(403).json({ message: "Not authorized" });
 			}
+
+			// Remove the post from the club's posts array
 			club.posts = club.posts.filter((p) => p._id.toString() !== id);
 			await club.save();
 		} else {
+			// If it's a general post
 			post = await Post.findById(id);
 
 			if (!post) {
 				return res.status(404).json({ message: "Post not found" });
 			}
 
+			// Authorization check
 			if (
-				post.author.userId.toString() !== req.user.id &&
+				post.authorId.toString() !== req.user.id &&
 				req.user.role !== "Admin"
 			) {
 				return res.status(403).json({ message: "Not authorized" });
 			}
 
-			await post.deleteOne();
-
-			await User.findByIdAndUpdate(post.author.userId, {
+			// Remove the post from the user's posts array
+			await User.findByIdAndUpdate(post.authorId, {
 				$pull: { posts: post._id },
 			});
+
+			// Delete the post itself
+			await post.deleteOne();
 		}
 
 		return res.json({ message: "Post deleted successfully" });
@@ -222,5 +430,75 @@ export const deletePost = async (req, res) => {
 		return res
 			.status(500)
 			.json({ message: "Server error", error: err.message });
+	}
+};
+
+export const savePostFn = async (req, res) => {
+	try {
+		const { postId, clubId } = req.params; // Post ID & optional Club ID
+		const userId = req.user.id;
+
+		let post;
+		let entity; // Can be a Club or User
+
+		// Check if the post belongs to a club
+		if (clubId) {
+			entity = await Club.findById(clubId);
+			if (!entity) return res.status(404).json({ message: "Club not found" });
+
+			post = entity.posts.find((p) => p._id.toString() === postId);
+			if (!post)
+				return res.status(404).json({ message: "Post not found in this club" });
+		} else {
+			// Otherwise, it's a general post
+			entity = await User.findById(userId);
+			post = await Post.findById(postId);
+			if (!post) return res.status(404).json({ message: "Post not found" });
+		}
+
+		// Check if the post is already saved
+		const isSaved = entity.saved.includes(postId);
+
+		if (isSaved) {
+			// If saved, remove it
+			entity.saved = entity.saved.filter((id) => id.toString() !== postId);
+			await entity.save();
+			return res.json({ message: "Post unsaved successfully" });
+		} else {
+			// Otherwise, save it
+			entity.saved.push(postId);
+			await entity.save();
+			return res.json({ message: "Post saved successfully" });
+		}
+	} catch (err) {
+		return res
+			.status(500)
+			.json({ message: "Server error", error: err.message });
+	}
+};
+
+export const getPoll = async (req, res) => {
+	try {
+		const { pollId } = req.params;
+
+		const poll = await Poll.findById(pollId)
+			.populate("authorId", "username profilePicture")
+			.populate("clubId", "name");
+
+		if (!poll) {
+			return res.status(404).json({
+				message: "Poll not found",
+			});
+		}
+
+		res.json({
+			message: "Poll fetched successfully",
+			poll,
+		});
+	} catch (err) {
+		res.status(500).json({
+			message: "Server error",
+			error: err.message,
+		});
 	}
 };

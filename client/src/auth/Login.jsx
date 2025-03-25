@@ -35,7 +35,7 @@ const Login = () => {
 
 			if (response.data.success) {
 				const role = response.data.user.role;
-				console.log(role);
+				console.log(response.data.user);
 				navigate(`/${role.toLowerCase()}`);
 			}
 		} catch (error) {

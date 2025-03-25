@@ -19,25 +19,139 @@ import useAllEvents from "../../../hooks/useAllEvents";
 import { getPresidentClubId } from "../../../hooks/getPresidantClubId";
 import EventCard from "../../sub-components/EventCard";
 
+// Sub-component: EventManagement Header
+const EventManagementHeader = ({ onCreateEvent }) => (
+	<Box
+		sx={{
+			display: "flex",
+			justifyContent: "space-between",
+			alignItems: "center",
+			mb: 4,
+		}}
+	>
+		<div>
+			<Typography
+				variant="h4"
+				gutterBottom
+			>
+				My Club Events
+			</Typography>
+			<Typography
+				variant="body1"
+				color="textSecondary"
+			>
+				Manage events organized by your club
+			</Typography>
+		</div>
+		<Button
+			variant="contained"
+			onClick={onCreateEvent}
+		>
+			Create New Event
+		</Button>
+	</Box>
+);
+
+// Sub-component: Event Filters
+const EventFilters = ({
+	eventType,
+	onEventTypeChange,
+	registrationStatus,
+	onRegistrationStatusChange,
+}) => (
+	<Box sx={{ mb: 4, display: "flex", gap: 3, flexWrap: "wrap" }}>
+		<FormControl sx={{ minWidth: 200 }}>
+			<InputLabel>Event Type</InputLabel>
+			<Select
+				value={eventType}
+				onChange={onEventTypeChange}
+				label="Event Type"
+			>
+				<MenuItem value="">All Types</MenuItem>
+				<MenuItem value="CULTURAL">Cultural</MenuItem>
+				<MenuItem value="TECH">Tech</MenuItem>
+				<MenuItem value="EDUCATION">Education</MenuItem>
+				<MenuItem value="SPORTS">Sports</MenuItem>
+				<MenuItem value="SEMINAR">Seminar</MenuItem>
+				<MenuItem value="OTHER">Other</MenuItem>
+			</Select>
+		</FormControl>
+
+		<FormControl sx={{ minWidth: 200 }}>
+			<InputLabel>Registration Status</InputLabel>
+			<Select
+				value={registrationStatus}
+				onChange={onRegistrationStatusChange}
+				label="Registration Status"
+			>
+				<MenuItem value="">All Statuses</MenuItem>
+				<MenuItem value="OPEN">Open</MenuItem>
+				<MenuItem value="CLOSED">Closed</MenuItem>
+				<MenuItem value="CANCELLED">Cancelled</MenuItem>
+			</Select>
+		</FormControl>
+	</Box>
+);
+
+// Sub-component: Events Grid
+const EventsGrid = ({ events, user }) => (
+	<>
+		{events.length > 0 ? (
+			<Grid
+				container
+				spacing={4}
+			>
+				{events.map((event) => (
+					<Grid
+						item
+						key={event._id}
+						xs={12}
+						sm={6}
+						md={4}
+					>
+						<EventCard
+							event={event}
+							userId={user._id}
+							showAdminControls={true}
+						/>
+					</Grid>
+				))}
+			</Grid>
+		) : (
+			<Typography
+				variant="h6"
+				sx={{ mt: 4, color: "text.secondary" }}
+			>
+				No events found for your club
+			</Typography>
+		)}
+	</>
+);
+
+// Main Component
 const EventManagement = () => {
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-	// Fetch all events from store
 	const { events } = useSelector((store) => store.event);
 	const { user } = useSelector((store) => store.auth);
 	useAllEvents();
 
-	// Get the club ID of the president
+	// console.log("Evn",events);
 	const presidentClubId = getPresidentClubId(user);
 
-	// States for filtering events
+	// Filter states
 	const [selectedEventType, setSelectedEventType] = useState("");
 	const [selectedRegistrationStatus, setSelectedRegistrationStatus] =
 		useState("");
 
-	// Filter events organized by the president's club
+	// Filter events
+	console.log("Events:", events);
+	console.log("President Club ID:", presidentClubId);
+	console.log("Selected Event Type:", selectedEventType);
+	console.log("Selected Registration Status:", selectedRegistrationStatus);
+
 	const filteredEvents = events.filter((event) => {
-		const isOrganizer = event?.organizer === presidentClubId;
+		const isOrganizer = event?.organizer._id === presidentClubId;
+		// console.log("Event Organizer",  event?.organizer._id)
 		const matchesEventType = selectedEventType
 			? event.eventType === selectedEventType
 			: true;
@@ -47,108 +161,26 @@ const EventManagement = () => {
 
 		return isOrganizer && matchesEventType && matchesStatus;
 	});
+	console.log("Filter", filteredEvents);
 
 	return (
 		<div style={{ padding: "20px" }}>
-			{/* Header Section */}
-			<Box
-				sx={{
-					display: "flex",
-					justifyContent: "space-between",
-					alignItems: "center",
-					mb: 4,
-				}}
-			>
-				<div>
-					<Typography
-						variant="h4"
-						gutterBottom
-					>
-						My Club Events
-					</Typography>
-					<Typography
-						variant="body1"
-						color="textSecondary"
-					>
-						Manage events organized by your club
-					</Typography>
-				</div>
-				<Button
-					variant="contained"
-					onClick={() => setIsDialogOpen(true)}
-				>
-					Create New Event
-				</Button>
-			</Box>
+			<EventManagementHeader onCreateEvent={() => setIsDialogOpen(true)} />
 
-			{/* Filter Controls */}
-			<Box sx={{ mb: 4, display: "flex", gap: 3, flexWrap: "wrap" }}>
-				{/* Event Type Filter */}
-				<FormControl sx={{ minWidth: 200 }}>
-					<InputLabel>Event Type</InputLabel>
-					<Select
-						value={selectedEventType}
-						onChange={(e) => setSelectedEventType(e.target.value)}
-						label="Event Type"
-					>
-						<MenuItem value="">All Types</MenuItem>
-						<MenuItem value="CULTURAL">Cultural</MenuItem>
-						<MenuItem value="TECH">Tech</MenuItem>
-						<MenuItem value="EDUCATION">Education</MenuItem>
-						<MenuItem value="SPORTS">Sports</MenuItem>
-						<MenuItem value="SEMINAR">Seminar</MenuItem>
-						<MenuItem value="OTHER">Other</MenuItem>
-					</Select>
-				</FormControl>
+			<EventFilters
+				eventType={selectedEventType}
+				onEventTypeChange={(e) => setSelectedEventType(e.target.value)}
+				registrationStatus={selectedRegistrationStatus}
+				onRegistrationStatusChange={(e) =>
+					setSelectedRegistrationStatus(e.target.value)
+				}
+			/>
 
-				{/* Registration Status Filter */}
-				<FormControl sx={{ minWidth: 200 }}>
-					<InputLabel>Registration Status</InputLabel>
-					<Select
-						value={selectedRegistrationStatus}
-						onChange={(e) => setSelectedRegistrationStatus(e.target.value)}
-						label="Registration Status"
-					>
-						<MenuItem value="">All Statuses</MenuItem>
-						<MenuItem value="OPEN">Open</MenuItem>
-						<MenuItem value="CLOSED">Closed</MenuItem>
-						<MenuItem value="CANCELLED">Cancelled</MenuItem>
-					</Select>
-				</FormControl>
-			</Box>
+			<EventsGrid
+				events={filteredEvents}
+				user={user}
+			/>
 
-			{/* Events Grid */}
-			{filteredEvents.length > 0 ? (
-				<Grid
-					container
-					spacing={4}
-				>
-					{filteredEvents.map((event) => (
-						<Grid
-							item
-							key={event._id}
-							xs={12}
-							sm={6}
-							md={4}
-						>
-							<EventCard
-								event={event}
-								userId={user._id}
-								showAdminControls={true}
-							/>
-						</Grid>
-					))}
-				</Grid>
-			) : (
-				<Typography
-					variant="h6"
-					sx={{ mt: 4, color: "text.secondary" }}
-				>
-					No events found for your club
-				</Typography>
-			)}
-
-			{/* Create Event Dialog */}
 			<CreateEventForm
 				open={isDialogOpen}
 				onClose={() => setIsDialogOpen(false)}
