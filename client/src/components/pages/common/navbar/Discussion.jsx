@@ -1,7 +1,6 @@
 import React from "react";
-import { useSelector } from "react-redux";
-import MyEditor from "../../discuss/MyEditor";
 
+import MyEditor from "../../discuss/MyEditor";
 
 const Discussion = () => {
 	return (
@@ -14,8 +13,7 @@ const Discussion = () => {
 			Like or Report Posts: If someone likes the idea, they can give it a thumbs
 
 			up 👍. If a post is inappropriate, they can report it to the admin. */}
-			<MyEditor/>
-		
+			<MyEditor />
 		</div>
 	);
 };

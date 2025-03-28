@@ -10,45 +10,7 @@ import Clubs from "../components/pages/common/navbar/Clubs";
 import Discussion from "../components/pages/common/navbar/Discussion";
 import Resources from "../components/pages/common/navbar/Resources";
 
-const user = {
-	fullName: "John Doe",
-	prn: "12345678",
-	email: "john.doe@example.com",
-	password: "hashed_password",
-	role: "Student",
-	branch: "Computer Science",
-	profilePicture: "https://example.com/profile.jpg",
-	phoneNumber: "+1234567890",
-	gender: "Male",
-	dateOfBirth: "2000-01-01",
-	socialLinks: {
-		linkedIn: "https://linkedin.com/in/johndoe",
-		twitter: "https://twitter.com/johndoe",
-		github: "https://github.com/johndoe",
-		personalWebsite: "https://johndoe.com",
-	},
-	posts: [],
-	saved: [],
-	address: {
-		street: "123 Main St",
-		city: "New York",
-		state: "NY",
-		zipCode: "10001",
-		country: "USA",
-	},
-	awards: [
-		{
-			title: "Best Project Award",
-			description: "Awarded for the best final-year project",
-			date: "2023-05-20",
-			image: "https://example.com/award.jpg",
-		},
-	],
-
-	profileId: "profile12345",
-	createdFaculty: [],
-	createdCollege: [],
-};
+const user = {};
 
 const CommonRoutes = () => {
 	return (
@@ -94,7 +56,10 @@ const CommonRoutes = () => {
 				path="resources"
 				element={<Resources />}
 			/>
-
+			<Route
+				path="/discussions/:id"
+				element={<DiscussionDetail />}
+			/>
 		</>
 	);
 };

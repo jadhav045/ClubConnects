@@ -93,6 +93,8 @@ const EventCard = ({ event, userId }) => {
 
 	const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
 	const [isFormRegisterOpen, setIsFormRegisterOpen] = useState(false);
+
+	const [formType, setFormType] = useState("");
 	const {
 		open,
 		tab,
@@ -108,8 +110,7 @@ const EventCard = ({ event, userId }) => {
 		handleClick,
 		handleMenuClick,
 		handleMenuClose,
-		// handleCreateForm,
-		// handleViewRegistrations,
+
 		handleViewFeedback,
 		handleShare,
 		handleRegister,
@@ -140,7 +141,8 @@ const EventCard = ({ event, userId }) => {
 
 	const timeLeft = useCountdown(event?.countdownTime);
 
-	const handleCreateForm = () => {
+	const handleCreateForm = (formType) => {
+		setFormType(formType);
 		handleMenuClose();
 		setIsFormRegisterOpen(true);
 	};
@@ -272,6 +274,7 @@ const EventCard = ({ event, userId }) => {
 						<span>{useCountdown(new Date(event?.registrationDeadline))}</span>
 					</div>
 				</CardContent>
+
 				<CardActions className="p-6 border-t border-indigo-200 flex justify-between">
 					<Button
 						onClick={handleOpen}
@@ -299,13 +302,6 @@ const EventCard = ({ event, userId }) => {
 							? "Already Registered"
 							: "Register Now"}
 					</Button>
-
-					{/* View Applied Students Dialog */}
-					{/* <AppliedStudent
-						open={isViewAppliedDialogOpen}
-						onClose={() => setViewAppliedDialogOpen(false)}
-						appliedStudents={appliedStudents}
-					/> */}
 				</CardActions>
 			</Card>
 
@@ -339,6 +335,7 @@ const EventCard = ({ event, userId }) => {
 				onClose={() => setIsFormDialogOpen(false)}
 				eventId={event._id}
 			/>
+
 			<Dialog
 				open={isFormRegisterOpen}
 				onClose={() => setIsFormRegisterOpen(false)}
@@ -351,6 +348,7 @@ const EventCard = ({ event, userId }) => {
 						entityId={event._id}
 						entityType="Event"
 						onClose={() => setIsFormRegisterOpen(false)}
+						formType={formType}
 					/>
 				</DialogContent>
 			</Dialog>

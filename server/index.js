@@ -9,10 +9,9 @@ import facultyRoutes from "./routes/role/faculty.routes.js";
 import studentRoutes from "./routes/role/student.routes.js";
 import formRoutes from "./controllers/form.controller.js";
 import eventRoutes from "./routes/eventRoutes.js";
-import opportunityRoutes from "./routes/opportunityRoutes.js";
+import opportunityRoutes from "./routes/activities/opportunityRoutes.js";
 import postRoutes from "./routes/activities/postRoutes.js";
-// import applicationRoutes from "./routes/applicationRoutes.js";
-// import notificationRoutes from "./routes"
+import discussionRoutes from "./routes/activities/discussionsRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -33,6 +32,7 @@ app.use("/event", eventRoutes);
 app.use("/form", formRoutes);
 app.use("/opportunities", opportunityRoutes);
 app.use("/post", postRoutes);
+app.use("/discussions", discussionRoutes);
 // Routes
 
 // Database Connection

@@ -1,16 +1,16 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 
 // Initial form state
 
 // Form handler hooks
-export const useFormHandlers = (entityId, entityType) => {
+export const useFormHandlers = (entityId, entityType, formType) => {
 	const { user } = useSelector((store) => store.auth);
 	const [formData, setFormData] = useState({
 		entityType: entityType,
 		entityId: entityId,
-		formType: "",
+		formType: formType,
 		title: "",
 		questions: [],
 		createdBy: user._id,
@@ -57,18 +57,29 @@ export const useFormHandlers = (entityId, entityType) => {
 				createdBy: user._id,
 				creatorType: "User",
 			});
-			
 		} catch (error) {
 			alert(error.response?.data?.error || "Error creating form");
 		}
 	};
 
+	const removeQuestion = useCallback((indexToRemove) => {
+		setFormData((prevData) => ({
+			...prevData,
+			questions: prevData.questions.filter(
+				(_, index) => index !== indexToRemove
+			),
+		}));
+
+		// Show confirmation toast
+		toast.success("Question removed successfully");
+	}, []);
 	return {
 		formData,
 		setFormData,
 		addQuestion,
 		handleQuestionChange,
 		handleSubmit,
+		removeQuestion,
 	};
 };
 

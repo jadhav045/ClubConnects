@@ -14,10 +14,14 @@ import {
 	Radio,
 	Box,
 	Grid,
+	Paper,
+	IconButton,
+	ListItemText,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/system";
 import { useFormHandlers, questionTypes } from "./FormCreaterFn";
+import { DeleteIcon } from "lucide-react";
 
 const QuestionContainer = styled(Box)(({ theme }) => ({
 	border: `1px solid ${theme.palette.divider}`,
@@ -30,7 +34,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
 	marginTop: theme.spacing(2),
 	marginBottom: theme.spacing(2),
 }));
-const FormCreator = ({ entityId, entityType, onClose }) => {
+const FormCreator = ({ entityId, entityType, onClose, formType }) => {
 	console.log("Event Data:", entityId);
 	const {
 		formData,
@@ -38,90 +42,92 @@ const FormCreator = ({ entityId, entityType, onClose }) => {
 		addQuestion,
 		handleQuestionChange,
 		handleSubmit,
-	} = useFormHandlers(entityId, entityType);
+		removeQuestion,
+	} = useFormHandlers(entityId, entityType, formType);
+
+	const handleRemoveQuestion = (index) => {
+		if (window.confirm("Are you sure you want to remove this question?")) {
+			removeQuestion(index);
+		}
+	};
+
 	return (
-		<Container maxWidth="md">
-			<Typography
-				variant="h4"
-				gutterBottom
-			>
-				Create New Form
-			</Typography>
+		<Container
+			maxWidth="md"
+			sx={{ py: 3 }}
+		>
+			<Box sx={{ mb: 3, textAlign: "center" }}>
+				<Typography
+					variant="h5"
+					component="h1"
+					fontWeight={700}
+				>
+					{formType} Form
+				</Typography>
+				<Typography
+					variant="subtitle2"
+					color="text.secondary"
+				>
+					Build your custom form with multiple question types
+				</Typography>
+			</Box>
 
 			<form onSubmit={handleSubmit}>
-				<Grid
-					container
-					spacing={3}
-				>
-					{/* Entity Type */}
-					<Grid
-						item
-						xs={12}
-						sm={6}
-					>
-						<FormControl fullWidth>
-							<InputLabel>Entity Type</InputLabel>
-							<Select
-								value={formData.entityType}
-								onChange={(e) =>
-									setFormData({ ...formData, entityType: e.target.value })
-								}
-							>
-								<MenuItem value="Event">Event</MenuItem>
-								<MenuItem value="Opportunity">Opportunity</MenuItem>
-							</Select>
-						</FormControl>
-					</Grid>
+				<TextField
+					fullWidth
+					variant="outlined"
+					label="Form Title"
+					value={formData.title}
+					onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+					sx={{ mb: 2 }}
+					InputProps={{ style: { fontSize: "1.1rem" } }}
+					required
+				/>
 
-					{/* Form Type */}
-					<Grid
-						item
-						xs={12}
-						sm={6}
+				{formData.questions.map((question, index) => (
+					<Paper
+						key={index}
+						elevation={0}
+						sx={{
+							mb: 2,
+							p: 2,
+							border: "1px solid",
+							borderColor: "divider",
+							borderRadius: 2,
+						}}
 					>
-						<FormControl fullWidth>
-							<InputLabel>Form Type</InputLabel>
-							<Select
-								value={formData.formType}
-								onChange={(e) =>
-									setFormData({ ...formData, formType: e.target.value })
-								}
-							>
-								<MenuItem value="REGISTRATION">Registration</MenuItem>
-								<MenuItem value="FEEDBACK">Feedback</MenuItem>
-							</Select>
-						</FormControl>
-					</Grid>
-
-					{/* Form Title */}
-					<Grid
-						item
-						xs={12}
-					>
-						<TextField
-							fullWidth
-							label="Form Title"
-							value={formData.title}
-							onChange={(e) =>
-								setFormData({ ...formData, title: e.target.value })
-							}
-						/>
-					</Grid>
-
-					{/* Questions */}
-					{formData.questions.map((question, index) => (
-						<Grid
-							item
-							xs={12}
-							key={index}
+						<Box
+							sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
 						>
-							<QuestionContainer>
-								{/* Question Type */}
+							<Typography
+								variant="subtitle2"
+								color="text.secondary"
+							>
+								Question {index + 1}
+							</Typography>
+							<IconButton
+								onClick={() => handleRemoveQuestion(index)}
+								size="small"
+								color="error"
+							>
+								<DeleteIcon fontSize="small" />
+							</IconButton>
+						</Box>
+
+						<Grid
+							container
+							spacing={2}
+						>
+							<Grid
+								item
+								xs={12}
+								md={5}
+							>
 								<FormControl
 									fullWidth
-									margin="normal"
+									size="small"
 								>
-									<InputLabel>Question Type</InputLabel>
+									<InputLabel>Type</InputLabel>
 									<Select
 										value={question.questionType}
 										onChange={(e) =>
@@ -131,37 +137,48 @@ const FormCreator = ({ entityId, entityType, onClose }) => {
 												e.target.value
 											)
 										}
+										label="Type"
 									>
 										{questionTypes.map((type) => (
 											<MenuItem
 												key={type.value}
 												value={type.value}
 											>
-												{type.label}
+												<ListItemText primary={type.label} />
 											</MenuItem>
 										))}
 									</Select>
 								</FormControl>
+							</Grid>
 
-								{/* Question Text */}
+							<Grid
+								item
+								xs={12}
+								md={7}
+							>
 								<TextField
 									fullWidth
-									label="Question Text"
+									variant="outlined"
+									label="Question"
 									value={question.questionText}
 									onChange={(e) =>
 										handleQuestionChange(index, "questionText", e.target.value)
 									}
-									margin="normal"
+									required
 								/>
+							</Grid>
 
-								{/* Options */}
-								{["MULTIPLE_CHOICE", "CHECKBOX", "DROPDOWN"].includes(
-									question.questionType
-								) && (
+							{["MULTIPLE_CHOICE", "CHECKBOX", "DROPDOWN"].includes(
+								question.questionType
+							) && (
+								<Grid
+									item
+									xs={12}
+								>
 									<TextField
 										fullWidth
-										label="Options (comma separated)"
-										helperText="Separate options with commas"
+										variant="outlined"
+										label="Options (comma-separated)"
 										onChange={(e) =>
 											handleQuestionChange(
 												index,
@@ -169,11 +186,24 @@ const FormCreator = ({ entityId, entityType, onClose }) => {
 												e.target.value.split(",")
 											)
 										}
-										margin="normal"
+										InputProps={{
+											endAdornment: question.options?.length > 0 && (
+												<InputAdornment position="end">
+													<Chip
+														label={`${question.options.length} options`}
+														size="small"
+													/>
+												</InputAdornment>
+											),
+										}}
 									/>
-								)}
+								</Grid>
+							)}
 
-								{/* Required Checkbox */}
+							<Grid
+								item
+								xs={12}
+							>
 								<FormControlLabel
 									control={
 										<Checkbox
@@ -185,44 +215,45 @@ const FormCreator = ({ entityId, entityType, onClose }) => {
 													e.target.checked
 												)
 											}
+											color="primary"
 										/>
 									}
 									label="Required"
 								/>
-							</QuestionContainer>
+							</Grid>
 						</Grid>
-					))}
+					</Paper>
+				))}
 
-					{/* Add Question Button */}
-					<Grid
-						item
-						xs={12}
+				<Box sx={{ display: "flex", justifyContent: "space-between", mt: 3 }}>
+					<Button
+						variant="contained"
+						startIcon={<AddIcon />}
+						onClick={addQuestion}
+						size="small"
 					>
-						<StyledButton
+						Add Question
+					</Button>
+
+					<Box sx={{ display: "flex", gap: 1 }}>
+						<Button
 							variant="outlined"
-							startIcon={<AddIcon />}
-							onClick={addQuestion}
+							onClick={onClose}
+							sx={{ minWidth: 100 }}
 						>
-							Add Question
-						</StyledButton>
-					</Grid>
-
-					{/* Submit Button */}
-					<Grid
-						item
-						xs={12}
-					>
-						<StyledButton
+							Cancel
+						</Button>
+						<Button
 							type="submit"
 							variant="contained"
 							color="primary"
+							sx={{ minWidth: 120 }}
 						>
 							Create Form
-						</StyledButton>
-					</Grid>
-				</Grid>
+						</Button>
+					</Box>
+				</Box>
 			</form>
-			<button onClick={onClose}>Close</button>
 		</Container>
 	);
 };

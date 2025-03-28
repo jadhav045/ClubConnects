@@ -10,11 +10,6 @@ const applicantSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-	coverLetter: String,
-	appliedAt: {
-		type: Date,
-		default: Date.now,
-	},
 	currentStatus: {
 		type: String,
 		enum: ["PENDING", "SHORTLISTED", "REJECTED", "SELECTED"],
@@ -134,4 +129,4 @@ const opportunitySchema = new mongoose.Schema(
 	}
 );
 
-export default mongoose.model("Opportunity", opportunitySchema);
+export const Opportunity = mongoose.model("Opportunity", opportunitySchema);

@@ -5,26 +5,56 @@ const discussionSchema = new mongoose.Schema({
 	description: { type: String, required: true },
 	category: {
 		type: String,
-		enum: ["Interview", "Placement", "Gate"],
+		enum: [
+			"Interview Experience",
+			"Roadmap",
+			"Career",
+			"Q&A",
+			"Events",
+			"Project Showcase",
+			"Hackathons",
+			"General Advice",
+			"Placement",
+			"Other",
+		],
 	},
+
+	// Placement , Carrer & Interview , Question & Answers
 	createdBy: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: "User",
 		required: true,
 	},
-	upvotes: { type: Number, default: 0 },
-	replies: [
+	appreciations: [
 		{
-			content: { type: String, required: true },
-			author: {
+			type: mongoose.Schema.Types.ObjectId,
+			ref: "User",
+		},
+	],
+	comments: [
+		{
+			userId: {
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "User",
 				required: true,
 			},
-			createdAt: { type: Date, default: Date.now },
+			text: { type: String, required: true },
+
+			timestamp: { type: Date, default: Date.now },
+			replies: [
+				{
+					userId: {
+						type: mongoose.Schema.Types.ObjectId,
+						ref: "User",
+						required: true,
+					},
+					text: { type: String, required: true },
+					timestamp: { type: Date, default: Date.now },
+				},
+			],
 		},
 	],
 	createdAt: { type: Date, default: Date.now },
 });
 
-export default Discussion = mongoose.model("Discussion", discussionSchema);
+export const Discussion = mongoose.model("Discussion", discussionSchema);

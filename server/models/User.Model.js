@@ -43,7 +43,10 @@ const UserSchema = new mongoose.Schema(
 				image: { type: String },
 			},
 		],
+
 		eventParticipated: [{ type: Schema.Types.ObjectId, ref: "Event" }],
+		opportunities: [{ type: Schema.Types.ObjectId, ref: "Opportunity" }],
+		discussions: [{ type: Schema.Types.ObjectId, ref: "Discussion" }],
 		socketId: { type: String },
 		notifications: [
 			{

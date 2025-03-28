@@ -14,6 +14,8 @@ import requestSlice from "./slice/requestSlice";
 import clubSlice from "./slice/clubSlice";
 import eventSlice from "./slice/eventSlice";
 import postSlice from "./slice/postSlice";
+import discussSlice from "./slice/discussSlice";
+
 const persistConfig = {
 	key: "root",
 	version: 1,
@@ -26,6 +28,8 @@ const rootReducer = combineReducers({
 	club: clubSlice,
 	event: eventSlice,
 	post: postSlice,
+
+	discuss: discussSlice,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

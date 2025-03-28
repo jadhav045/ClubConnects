@@ -7,7 +7,7 @@ const eventSlice = createSlice({
 	},
 	reducers: {
 		setEvents: (state, action) => {
-			// console.log("Updating Redux store with events:", action.payload); // Debugging log
+			console.log("Updating Redux store with events:", action.payload); // Debugging log
 			state.events = action.payload; // Ensure correct mutation
 		},
 		removeAllEvents: (state) => {

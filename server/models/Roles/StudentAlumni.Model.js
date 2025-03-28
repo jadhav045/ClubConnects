@@ -13,7 +13,7 @@ const StudentAlumniSchema = new mongoose.Schema(
 			enum: ["Student", "Alumni"],
 			required: true,
 		},
-		
+
 		department: { type: String },
 		graduationYear: { type: Number },
 		enrollmentYear: { type: Number },
@@ -21,7 +21,7 @@ const StudentAlumniSchema = new mongoose.Schema(
 
 		// Common Fields
 		skills: [{ type: String }],
-		eventParticipated: [{ type: Schema.Types.ObjectId, ref: "Event" }],
+
 		clubsJoined: [
 			{
 				clubId: { type: mongoose.Schema.Types.ObjectId, ref: "Club" },
