@@ -9,8 +9,11 @@ const discussSlice = createSlice({
 	},
 	reducers: {
 		setDiscusss: (state, action) => {
-			state.discusss = action.payload;
+			state.discusss = action.payload
+				? [...action.payload].sort((a, b) => a.date - b.date)
+				: [];
 		},
+
 		addDiscussion: (state, action) => {
 			state.discusss.push(action.payload);
 		},

@@ -6,7 +6,7 @@ import axios from "axios";
 import { setDiscusss } from "../store/slice/discussSlice";
 const useAllDiscussions = () => {
 	const dispatch = useDispatch();
-	const {discusss} = useSelector((store) => store.discuss);
+	const { discusss } = useSelector((store) => store.discuss);
 	useEffect(() => {
 		const fetchDiscussions = async () => {
 			try {
@@ -24,6 +24,7 @@ const useAllDiscussions = () => {
 					return;
 				}
 
+				console.log("e", res.data.discussions);
 				dispatch(setDiscusss(res.data.discussions)); // ✅ Corrected
 			} catch (error) {
 				console.error("Error fetching discussions", error);

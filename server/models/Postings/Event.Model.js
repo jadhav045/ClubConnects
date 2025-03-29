@@ -88,4 +88,47 @@ const EventSchema = new mongoose.Schema(
 
 	{ timestamps: true }
 );
+
+// Add middleware to check and update registration status
+EventSchema.pre("save", function (next) {
+	// Check if registration deadline exists and has passed
+	if (this.registrationDeadline && new Date() > this.registrationDeadline) {
+		this.registrationStatus = "CLOSED";
+	}
+	next();
+});
+
+// Add a static method to update status of all events
+EventSchema.statics.updateRegistrationStatuses = async function () {
+	const currentDate = new Date();
+	await this.updateMany(
+		{
+			registrationDeadline: { $lt: currentDate },
+			registrationStatus: "OPEN",
+		},
+		{
+			$set: { registrationStatus: "CLOSED" },
+		}
+	);
+};
+
+// Add an instance method to check status
+EventSchema.methods.isRegistrationOpen = function () {
+	if (this.registrationStatus === "CANCELLED") return false;
+	if (this.registrationDeadline && new Date() > this.registrationDeadline) {
+		this.registrationStatus = "CLOSED";
+		this.save();
+		return false;
+	}
+	if (
+		this.maxParticipants &&
+		this.participants.length >= this.maxParticipants
+	) {
+		this.registrationStatus = "CLOSED";
+		this.save();
+		return false;
+	}
+	return this.registrationStatus === "OPEN";
+};
+
 export const Event = mongoose.model("Event", EventSchema);

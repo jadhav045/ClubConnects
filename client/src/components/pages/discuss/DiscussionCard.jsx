@@ -3,14 +3,13 @@ import {
 	FaComment,
 	FaTrash,
 	FaEdit,
-	FaRegHeart,
-	FaHeart,
 	FaChevronDown,
 	FaChevronUp,
 } from "react-icons/fa";
 
 import { PiHandsClappingFill, PiHandsClappingLight } from "react-icons/pi";
 
+import { useNavigate } from "react-router-dom";
 import HTMLReactParser from "html-react-parser";
 import { formatDistanceToNow } from "date-fns";
 import ReactQuill from "react-quill";
@@ -32,6 +31,13 @@ const CATEGORY_COLORS = {
 	Placement: "bg-teal-100 text-teal-800",
 };
 
+const truncateHTML = (html, maxLength) => {
+	const div = document.createElement("div");
+	div.innerHTML = html;
+	const text = div.textContent;
+	if (text.length <= maxLength) return html;
+	return text.slice(0, maxLength).trim() + "...";
+};
 const AppreciationButton = ({ hasAppreciated, count, isLoading, onClick }) => {
 	return (
 		<Tooltip
@@ -80,6 +86,7 @@ const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
 		hasAppreciated,
 	} = useDiscussion(discussion, currentUser, onDiscussionChange);
 
+	const navigate = useNavigate();
 	const dialogActions = (
 		<div className="flex justify-end gap-3 mt-4">
 			<Button
@@ -100,6 +107,7 @@ const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
 		</div>
 	);
 
+	console.log("ROle", currentUser);
 	return (
 		<article className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 p-6 mb-6">
 			<DialogComponent
@@ -190,12 +198,40 @@ const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
 			</header>
 
 			{/* Card Content */}
-			<div className="prose max-w-none mb-6 text-gray-700">
-				{HTMLReactParser(discussion.description)}
+			<div className="relative">
+				<div
+					className="prose max-w-none mb-4 text-gray-700 overflow-hidden relative"
+					style={{ height: "140px" }}
+				>
+					{HTMLReactParser(discussion.description)}
+					{/* Gradient overlay */}
+					<div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+				</div>
+				<button
+					onClick={() =>
+						navigate(`/${currentUser.role}/discussions/${discussion._id}`)
+					}
+					className="inline-flex items-center gap-2 text-blue-500 hover:text-blue-600 group font-medium text-sm cursor-pointer relative z-10"
+				>
+					See full discussion
+					<svg
+						className="w-4 h-4 transition-transform group-hover:translate-x-1"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+					>
+						<path
+							strokeLinecap="round"
+							strokeLinejoin="round"
+							strokeWidth={2}
+							d="M9 5l7 7-7 7"
+						/>
+					</svg>
+				</button>
 			</div>
 
 			{/* Card Footer */}
-			<footer className="pt-4 border-t border-gray-100">
+			<footer className="pt-4 border-t border-gray-100 mt-4">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-2">
 						<AppreciationButton

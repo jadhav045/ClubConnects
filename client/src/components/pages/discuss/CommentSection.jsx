@@ -38,7 +38,6 @@ const CommentSection = ({ discussionId, comments, currentUser }) => {
 	const [isLoading, setIsLoading] = useState(false);
 	const [activeMenu, setActiveMenu] = useState(null);
 
-	console.log(comments);
 	const handleAddComment = async () => {
 		if (!newComment.trim()) return;
 		setIsLoading(true);
@@ -53,7 +52,6 @@ const CommentSection = ({ discussionId, comments, currentUser }) => {
 			if (response.data.success) {
 				setNewComment("");
 				toast.success("Comment added successfully");
-				onCommentsUpdate();
 			}
 		} catch (error) {
 			console.error("Error:", error);
@@ -78,7 +76,6 @@ const CommentSection = ({ discussionId, comments, currentUser }) => {
 				setReplyText("");
 				setReplyingTo(null);
 				toast.success("Reply added successfully");
-				onCommentsUpdate();
 			}
 		} catch (error) {
 			toast.error(error.response?.data?.message || "Failed to add reply");

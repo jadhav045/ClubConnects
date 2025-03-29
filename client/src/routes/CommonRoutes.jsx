@@ -9,6 +9,7 @@ import Events from "../components/pages/common/navbar/Events";
 import Clubs from "../components/pages/common/navbar/Clubs";
 import Discussion from "../components/pages/common/navbar/Discussion";
 import Resources from "../components/pages/common/navbar/Resources";
+import DiscussionDetails from "../components/pages/discuss/DiscussionDetails";
 
 const user = {};
 
@@ -56,9 +57,13 @@ const CommonRoutes = () => {
 				path="resources"
 				element={<Resources />}
 			/>
-			<Route
+			{/* <Route
 				path="/discussions/:id"
 				element={<DiscussionDetail />}
+			/> */}
+			<Route
+				path="discussions/:id"
+				element={<DiscussionDetails />}
 			/>
 		</>
 	);

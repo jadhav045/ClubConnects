@@ -12,6 +12,7 @@ import eventRoutes from "./routes/eventRoutes.js";
 import opportunityRoutes from "./routes/activities/opportunityRoutes.js";
 import postRoutes from "./routes/activities/postRoutes.js";
 import discussionRoutes from "./routes/activities/discussionsRoutes.js";
+import { startEventScheduler } from "./middlewares/startEventSchedular.js";
 dotenv.config();
 
 const app = express();
@@ -34,6 +35,7 @@ app.use("/opportunities", opportunityRoutes);
 app.use("/post", postRoutes);
 app.use("/discussions", discussionRoutes);
 // Routes
+startEventScheduler();
 
 // Database Connection
 mongoose

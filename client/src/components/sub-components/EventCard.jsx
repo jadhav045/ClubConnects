@@ -147,6 +147,27 @@ const EventCard = ({ event, userId }) => {
 		setIsFormRegisterOpen(true);
 	};
 
+	const isEventClosed = () => {
+		return (
+			event.registrationStatus === "CLOSED" ||
+			event.registrationStatus === "CANCELLED" ||
+			new Date() > new Date(event.registrationDeadline)
+		);
+	};
+
+	const getRegistrationStatusColor = () => {
+		switch (event.registrationStatus) {
+			case "OPEN":
+				return "text-green-500";
+			case "CLOSED":
+				return "text-red-500";
+			case "CANCELLED":
+				return "text-gray-500";
+			default:
+				return "text-gray-500";
+		}
+	};
+
 	const eventDate = new Date(event?.eventDateTime);
 	const formattedDate = eventDate.toLocaleDateString("en-US", {
 		weekday: "short", // e.g., Sun
@@ -270,8 +291,20 @@ const EventCard = ({ event, userId }) => {
 					</div>
 
 					<div className="flex items-center gap-4">
+						<Box className="w-6 h-6 text-blue-500" />
+						<span className={`text-lg font-medium ${getRegistrationStatusColor()}`}>
+							Registration {event.registrationStatus.toLowerCase()}
+						</span>
+					</div>
+
+					<div className="flex items-center gap-4">
 						<Clock className="w-6 h-6 text-yellow-500" />
-						<span>{useCountdown(new Date(event?.registrationDeadline))}</span>
+						<span className={isEventClosed() ? "text-red-500" : "text-green-500"}>
+							{isEventClosed() 
+								? "Registration Closed"
+								: useCountdown(new Date(event?.registrationDeadline))
+							}
+						</span>
 					</div>
 				</CardContent>
 
@@ -290,6 +323,7 @@ const EventCard = ({ event, userId }) => {
 						color="secondary"
 						className="rounded-full"
 						disabled={
+							isEventClosed() || // Add this condition
 							user?.role !== "Faculty" &&
 							user?.role !== "Alumni" &&
 							isRegistered
@@ -298,6 +332,8 @@ const EventCard = ({ event, userId }) => {
 						<BookOpen className="mr-2" />
 						{user?.role === "Faculty" || user?.role === "Alumni"
 							? "View Applied Students"
+							: isEventClosed()
+							? "Registration Closed"
 							: isRegistered
 							? "Already Registered"
 							: "Register Now"}

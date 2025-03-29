@@ -8,6 +8,7 @@ export const createDiscussionFn = async (req, res) => {
 		const createdBy = req.user.id; // Extracted from auth middleware
 		const userRole = req.user.role; // Extracted from auth middleware
 
+		console.log(req.body);
 		// Check if user exists
 		const user = await User.findById(createdBy);
 		if (!user) return res.status(404).json({ message: "User not found" });
