@@ -1,4 +1,5 @@
 import { Club } from "../../models/Roles/Club.Model.js";
+import { Faculty } from "../../models/Roles/Faculty.Model.js";
 import { StudentAlumni } from "../../models/Roles/StudentAlumni.Model.js";
 import { User } from "../../models/User.Model.js";
 
@@ -7,8 +8,6 @@ export const createClubFn = async (req, res) => {
 		req.body;
 	const { facultyId } = req.params;
 
-	console.log("Club Data for creation", req.body);
-	console.log("Faculty Id", facultyId);
 	if (!clubName || !presidentId || !facultyId || !collegeId) {
 		return res.status(400).json({ message: "Missing required fields" });
 	}
@@ -32,6 +31,12 @@ export const createClubFn = async (req, res) => {
 			return res.status(404).json({ message: "Faculty user not found" });
 		}
 
+		const f = await Faculty.findById(facultyUser.profileId);
+
+		if (!f) {
+			throw new Error("Faculty not found");
+		}
+
 		// Create new club
 		const newClub = new Club({
 			clubName,
@@ -39,7 +44,7 @@ export const createClubFn = async (req, res) => {
 			motto,
 			description,
 			collegeId,
-			createdBy: facultyId,
+			createdBy: facultyUser._id, // Use facultyUser._id
 			members: [
 				{
 					userId: presidentId,
@@ -49,7 +54,14 @@ export const createClubFn = async (req, res) => {
 			],
 		});
 
+		// Save the new club first
 		await newClub.save();
+
+		// Push the new club ID into the faculty's `createdClub` array
+		f.createdClub.push(newClub._id);
+
+		// Save the updated faculty document
+		await f.save();
 
 		// Update president's clubsJoined
 		const studentAlumni = await StudentAlumni.findOne({ userId: presidentId });
@@ -66,7 +78,7 @@ export const createClubFn = async (req, res) => {
 				.json({ message: "Student/Alumni profile not found for president" });
 		}
 
-		res
+		return res
 			.status(201)
 			.json({ message: "Club created successfully", club: newClub });
 	} catch (err) {

@@ -270,11 +270,18 @@ export const replyPoll = async (req, res) => {
 export const getAllPosts = async (req, res) => {
 	try {
 		const posts = await Post.find()
-			.populate("authorId", "fullName profilePicture")
-			.populate("clubId", "name")
+			.populate("authorId", "fullName profilePicture") // Populate author
+			.populate("clubId", "name") // Populate club
+			.populate({
+				path: "comments.userId", // Populate userId inside comments
+				select: "fullName profilePicture role",
+			})
+			.populate({
+				path: "comments.replies.userId", // Populate userId inside replies
+				select: "fullName profilePicture role",
+			})
 			.sort({ createdAt: -1 });
 
-		console.log("Posts", posts);
 		return res.json({
 			message: "Posts fetched successfully",
 			success: true,
@@ -477,28 +484,17 @@ export const savePostFn = async (req, res) => {
 	}
 };
 
-export const getPoll = async (req, res) => {
+export const getPost = async (req, res) => {
 	try {
-		const { pollId } = req.params;
-
-		const poll = await Poll.findById(pollId)
-			.populate("authorId", "username profilePicture")
-			.populate("clubId", "name");
-
-		if (!poll) {
-			return res.status(404).json({
-				message: "Poll not found",
-			});
+		const { postId } = req.params;
+		console.log("postId", postId);
+		const post = await Post.findById(postId);
+		if (!post) {
+			return res.status(404).json({ message: "Post not found" });
 		}
-
-		res.json({
-			message: "Poll fetched successfully",
-			poll,
-		});
-	} catch (err) {
-		res.status(500).json({
-			message: "Server error",
-			error: err.message,
-		});
+		console.log(post);
+		return res.json(post);
+	} catch (error) {
+		res.status(500).json({ message: "Server error", error: error.message });
 	}
 };

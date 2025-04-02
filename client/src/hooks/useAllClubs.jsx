@@ -1,29 +1,37 @@
-import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { setClubs } from "../store/slice/clubSlice";
+import { createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { API_URL } from "../routes/apiConfig";
 
-const useAllClubs = () => {
-	const dispatch = useDispatch();
-	const { clubs } = useSelector((store) => store.club);
+export const fetchClubs = createAsyncThunk(
+	"clubs/fetchClubs",
+	async ({ page, limit, type }) => {
+		try {
+			console.log("Fetching clubs with params:", { page, limit, type }); // Debug log
 
-	useEffect(() => {
-		const fetchClubs = async () => {
-			try {
-				const token = localStorage.getItem("token");
-				if (!token) return;
+			const response = await axios.get(`${API_URL}/student/clubs`, {
+				params: {
+					page,
+					limit,
+					type: type || undefined,
+				},
+			});
 
-				const res = await axios.get("http://localhost:3002/faculty/clubs/list");
+			console.log("API response:", response.data.data); // Debug log
 
-				console.log(res.data.clubs);
-				dispatch(setClubs(res.data.clubs));
-			} catch (error) {
-				console.error("Error fetching posts", error);
+			if (!response.data.data) {
+				throw new Error("Invalid response format");
 			}
-		};
 
-		fetchClubs();
-	}, [dispatch]);
-};
-
-export default useAllClubs;
+			return {
+				data: response.data.data,
+				pagination: {
+					totalPages: response.data.totalPages || 1,
+					currentPage: page,
+				},
+			};
+		} catch (error) {
+			console.error("Fetch error:", error);
+			throw error.response?.data?.message || "Failed to fetch clubs";
+		}
+	}
+);

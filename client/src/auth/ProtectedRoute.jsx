@@ -14,7 +14,7 @@ const ProtectedRoute = ({ allowedRoles }) => {
 		);
 	}
 
-	const role = user.role.toLowerCase(); // Create a copy instead of modifying user
+	const role = user.role?.toLowerCase();
 
 	if (!allowedRoles.includes(role)) {
 		return (

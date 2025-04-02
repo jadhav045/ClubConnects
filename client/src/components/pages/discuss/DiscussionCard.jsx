@@ -69,7 +69,7 @@ const AppreciationButton = ({ hasAppreciated, count, isLoading, onClick }) => {
 	);
 };
 
-const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
+const DiscussionCard = ({ discussion, currentUser }) => {
 	const {
 		isLoading,
 		isEditing,
@@ -84,7 +84,7 @@ const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
 		showComments,
 		setShowComments,
 		hasAppreciated,
-	} = useDiscussion(discussion, currentUser, onDiscussionChange);
+	} = useDiscussion(discussion, currentUser);
 
 	const navigate = useNavigate();
 	const dialogActions = (
@@ -107,7 +107,12 @@ const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
 		</div>
 	);
 
-	console.log("ROle", currentUser);
+	const handleNavigate = () => {
+		if (discussion?.createdBy?._id) {
+			navigate(`/${currentUser.role}/profile/${discussion?.createdBy?._id}`);
+		}
+	};
+
 	return (
 		<article className="bg-white rounded-xl shadow-sm hover:shadow-lg transition-shadow duration-300 p-6 mb-6">
 			<DialogComponent
@@ -160,10 +165,13 @@ const DiscussionCard = ({ discussion, currentUser, onDiscussionChange }) => {
 					<h2 className="text-2xl font-bold text-gray-900 mb-2">
 						{discussion.title}
 					</h2>
-					<div className="flex items-center space-x-3">
+					<div
+						className="flex items-center space-x-3 cursor-pointer"
+						onClick={handleNavigate}
+					>
 						<span className="inline-flex items-center text-sm font-medium text-gray-600">
 							<span className="mr-2">👤</span>
-							{discussion.createdBy?.fullName}
+							{discussion.createdBy?.fullName || "WHo"}
 						</span>
 						<span className="text-gray-400">•</span>
 						<time className="text-sm text-gray-500">

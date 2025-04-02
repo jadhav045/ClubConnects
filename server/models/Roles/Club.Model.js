@@ -21,14 +21,12 @@ const ClubSchema = new mongoose.Schema(
 		logo: { type: String },
 		profilePicture: { type: String },
 
-		socialMedia: {
-			facebook: { type: String, trim: true },
-			instagram: { type: String, trim: true },
-			linkedin: { type: String, trim: true },
-			twitter: { type: String, trim: true }, // Removed extra "A"
-			website: { type: String, trim: true },
+		socialLinks: {
+			linkedIn: { type: String, default: "" },
+			twitter: { type: String, default: "" },
+			github: { type: String, default: "" },
+			personalWebsite: { type: String, default: "" },
 		},
-
 		// **Membership & Structure**
 		members: [
 			{
@@ -53,14 +51,16 @@ const ClubSchema = new mongoose.Schema(
 			},
 		],
 
-		advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-		maxMembers: { type: Number, default: 100 },
-		membershipFee: { type: Number, default: 0 },
-		eligibilityCriteria: { type: String, trim: true },
+		followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-		// **Club History & Achievements**
+		advisors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
+		maxMembers: { type: Number, default: 100 },
+
 		foundingYear: { type: Number },
+
 		foundingMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
 		pastLeaders: [
 			{
 				userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -69,6 +69,7 @@ const ClubSchema = new mongoose.Schema(
 				tenureEnd: { type: Date },
 			},
 		],
+
 		achievements: [
 			{
 				title: { type: String, required: true },
@@ -77,11 +78,11 @@ const ClubSchema = new mongoose.Schema(
 				image: { type: String },
 			},
 		],
+
 		posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 		saved: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
-
-		// **Events & Activities**
 		events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+
 		collaborations: [
 			{
 				clubId: { type: mongoose.Schema.Types.ObjectId, ref: "Club" },
@@ -100,15 +101,16 @@ const ClubSchema = new mongoose.Schema(
 			},
 		],
 
-		// **Administrative Details**
 		createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
 		collegeId: { type: Schema.Types.ObjectId, ref: "College", required: true },
+
 		status: {
 			type: String,
 			enum: ["Active", "Inactive", "Pending Approval"],
 			default: "Active",
 			index: true,
 		},
+
 		requests: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

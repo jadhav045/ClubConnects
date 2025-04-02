@@ -1,5 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
+import OpportunitiesList from "../opportunity/OpportunitiesList";
 
 const Opportunities = () => {
 	const { user } = useSelector((store) => store.auth);
@@ -10,10 +11,11 @@ const Opportunities = () => {
 
 	const presidentClubId = presidentClub ? presidentClub.clubId : null;
 
-	console.log(presidentClubId);
-
 	return (
-		<div>List Of opportunities and applied history also {presidentClubId}</div>
+		<div>
+			List Of opportunities and applied history also {user.fullName}
+			<OpportunitiesList />
+		</div>
 	);
 };
 

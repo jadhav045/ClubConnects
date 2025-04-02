@@ -34,3 +34,15 @@ export const startEventScheduler = () => {
 		}
 	});
 };
+
+
+
+
+
+// import { checkAndUpdateDeadlines } from '../controllers/Postings/opportunity.controller.js';
+
+// Run every hour
+// cron.schedule('0 * * * *', async () => {
+//     console.log('Checking opportunity deadlines...');
+//     await checkAndUpdateDeadlines();
+// });

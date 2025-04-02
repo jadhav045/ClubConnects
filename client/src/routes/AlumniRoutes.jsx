@@ -3,6 +3,7 @@ import Dashboard from "../components/dashboard/Dashboard";
 import CommonRoutes from "./CommonRoutes";
 import AlumniNetwork from "../components/pages/alumni/AlumniNetwork";
 import Mentorship from "../components/pages/alumni/Mentorship";
+import Opportunities from "../components/pages/student/Opportunities";
 const AlumniRoutes = () => {
 	return (
 		<Route
@@ -18,6 +19,10 @@ const AlumniRoutes = () => {
 			<Route
 				path="mentorship"
 				element={<Mentorship />}
+			/>
+			<Route
+				path="opportunities"
+				element={<Opportunities />}
 			/>
 		</Route>
 	);

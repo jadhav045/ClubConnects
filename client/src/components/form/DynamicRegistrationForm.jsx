@@ -17,6 +17,9 @@ import {
 	MenuItem,
 	Rating as MuiRating,
 	TextField,
+	Grid,
+	useMediaQuery,
+	useTheme,
 } from "@mui/material";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -148,44 +151,42 @@ const RatingQuestion = ({ value, onChange }) => (
 
 // Custom Hooks
 const useFormFetcher = (entityType, entityId) => {
-	const { user } = useSelector((state) => state.auth);
 	const [formData, setFormData] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState(null);
 
 	const fetchForm = async (formType) => {
 		try {
+			setLoading(true);
 			const response = await axios.get(
-				`http://localhost:3002/form/${entityType}/${entityId}?formType=${formType}`,
-				{
-					params: { type: formType },
-				}
+				`http://localhost:3002/form/${entityType}/${entityId}?formType=${formType}`
 			);
 
-			setFormData(response.data.form);
-			return {
-				form: response.data.form,
-				initialAnswers: response.data.answers,
-			};
+			console.log(response);
+			// Check if form exists in response
+			if (response.data?.success && response.data?.form) {
+				console.log("Fetched form data:", response.data.form);
+				setFormData(response.data.form);
+				return {
+					form: response.data.form,
+					questions: response.data.form.questions || [],
+				};
+			} else {
+				throw new Error(response.data?.message || "No form found");
+			}
 		} catch (err) {
-			console.error("Error loading form:", err); // Log error for debugging
-
-			// Extract a meaningful error message
-			const errorMessage =
-				err.response?.data?.error || err.message || "Failed to load form";
-
-			setError(errorMessage); // Set error state
-			toast.error(errorMessage, { position: "top-right" }); // Show toast notification
-
+			console.error("Error fetching form:", err);
+			setError(err.message);
 			return null;
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	return { formData, setFormData, loading, error, fetchForm };
+	return { formData, loading, error, fetchForm };
 };
 
+// Update the form submission hook
 const useFormSubmission = () => {
 	const [submitting, setSubmitting] = useState(false);
 	const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -205,7 +206,7 @@ const useFormSubmission = () => {
 			setSubmitting(true);
 			const res = await axios.post(`http://localhost:3002/form/submit`, {
 				formId: formData._id,
-				entityType: "Event",
+				entityType, // Remove hardcoded "Event"
 				entityId,
 				userId,
 				answers,
@@ -213,22 +214,23 @@ const useFormSubmission = () => {
 
 			// After successful registration
 			if (res.data.success) {
+				// Update user state based on entity type
+				const stateKey =
+					entityType === "Event"
+						? "eventParticipated"
+						: "opportunityParticipated";
 				dispatch(
 					setAuthUser({
-						...authUser, // Spread existing user data
-						eventParticipated: [
-							...(authUser.eventParticipated || []),
-							entityId,
-						],
+						...authUser,
+						[stateKey]: [...(authUser[stateKey] || []), entityId],
 					})
 				);
-			}
 
-			// console.log(res.data);
-			setSubmitSuccess(true);
-			setError(null);
-			toast.success("Form submitted successfully!", { position: "top-right" }); // ✅ Success Toast
-			return true;
+				setSubmitSuccess(true);
+				toast.success("Registration submitted successfully!");
+				return true;
+			}
+			return false;
 		} catch (err) {
 			console.error("Error loading form:", err); // Log error for debugging
 
@@ -249,80 +251,92 @@ const useFormSubmission = () => {
 };
 const DynamicRegistrationForm = ({ entityType, entityId, onClose }) => {
 	const { user } = useSelector((store) => store.auth);
-	const { formData, setFormData, loading, error, fetchForm } = useFormFetcher(
+	const theme = useTheme();
+	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
+	const [answers, setAnswers] = useState({});
+	const { formData, loading, error, fetchForm } = useFormFetcher(
 		entityType,
 		entityId
 	);
-	const {
-		submitting,
-		submitSuccess,
-		error: submitError,
-		submitForm,
-	} = useFormSubmission();
-	const [answers, setAnswers] = useState([]);
+	const { submitForm, submitting, submitSuccess } = useFormSubmission();
 
 	useEffect(() => {
 		const loadForm = async () => {
 			const result = await fetchForm("REGISTRATION");
-			if (result) {
-				setFormData(result.form);
-				// Initialize with question IDs and proper initial values
-				setAnswers(
-					result.form.questions.map((question) => ({
-						questionId: question._id,
-						value:
-							result.initialAnswers?.find((a) => a.questionId === question._id)
-								?.value || (question.questionType === "CHECKBOX" ? [] : ""),
-					}))
+			if (result?.form?.questions) {
+				// Initialize answers with empty values
+				const initialAnswers = result.form.questions.reduce(
+					(acc, q) => ({
+						...acc,
+						[q._id]: q.questionType === "CHECKBOX" ? [] : "",
+					}),
+					{}
 				);
+				setAnswers(initialAnswers);
 			}
 		};
 		loadForm();
 	}, [entityType, entityId]);
 
-	const handleAnswerChange = (questionId, value) => {
-		setAnswers((prev) =>
-			prev.map((answer) =>
-				answer.questionId === questionId
-					? { ...answer, value: Array.isArray(value) ? [...value] : value }
-					: answer
-			)
-		);
-	};
-
 	const handleSubmit = async (e) => {
 		e.preventDefault();
-		// Validate required questions
-		const hasEmptyRequired = formData.questions.some(
-			(q, i) => q.required && !answers[i]?.value?.toString().trim()
-		);
 
-		if (hasEmptyRequired) {
-			setError("Please fill all required fields");
+		// Validate required fields
+		const missingRequired = formData?.questions
+			.filter((q) => q.required)
+			.some((q) => {
+				const answer = answers[q._id];
+				return (
+					!answer ||
+					(Array.isArray(answer) && answer.length === 0) ||
+					(!Array.isArray(answer) && answer.trim() === "")
+				);
+			});
+
+		if (missingRequired) {
+			toast.error("Please fill all required fields");
 			return;
 		}
 
-		// Submit with proper structure
-		const success = await submitForm(
-			formData,
-			answers, // Now includes questionId/value pairs
-			entityType,
-			entityId,
-			user._id
+		// Format answers for submission
+		const formattedAnswers = Object.entries(answers).map(
+			([questionId, value]) => {
+				const question = formData.questions.find((q) => q._id === questionId);
+				return {
+					questionId,
+					value,
+					question: question?.label || "",
+				};
+			}
 		);
 
-		if (success && onClose) setTimeout(onClose, 2000);
+		const success = await submitForm(
+			formData,
+			formattedAnswers,
+			entityType,
+			entityId,
+			user?._id
+		);
+
+		if (success) {
+			toast.success("Registration submitted successfully!");
+			onClose?.();
+		}
 	};
 
-	const renderQuestion = (question, index) => {
-		const currentAnswer =
-			answers.find((a) => a.questionId === question._id)?.value ?? "";
-
+	// Update the question rendering
+	const renderQuestion = (question) => {
+		const value = answers[question._id] || "";
 		const props = {
-			value: currentAnswer,
-			onChange: (value) => handleAnswerChange(question._id, value),
-			options: question.options || [],
+			value,
+			onChange: (newValue) =>
+				setAnswers((prev) => ({
+					...prev,
+					[question._id]: newValue,
+				})),
 			required: question.required,
+			options: question.options || [],
 		};
 
 		switch (question.questionType) {
@@ -341,101 +355,92 @@ const DynamicRegistrationForm = ({ entityType, entityId, onClose }) => {
 		}
 	};
 
+	if (loading) return <CircularProgress />;
+	if (error) return <Alert severity="error">{error}</Alert>;
+	if (!formData) return <Alert severity="info">No form available</Alert>;
+
+	const handleCancel = () => {
+		if (submitting) {
+			return; // Prevent canceling while submitting
+		}
+		onClose?.();
+	};
+
 	return (
 		<Container
 			maxWidth="lg"
 			sx={{ py: 4, px: isMobile ? 2 : 4 }}
 		>
-			<Box
-				display="flex"
-				justifyContent="space-between"
-				alignItems="center"
-				mb={4}
-			>
+			<Box sx={{ mb: 4 }}>
 				<Typography
-					variant="h4"
-					component="h1"
-					sx={{ fontWeight: 700 }}
+					variant="h5"
+					gutterBottom
 				>
-					{formData?.title || "Registration Form"}
+					{formData?.title || `Registration Form`}
 				</Typography>
-				<Button
-					variant="outlined"
-					onClick={onClose}
-					disabled={submitting}
-					sx={{ minWidth: 100 }}
+				{error && (
+					<Alert
+						severity="error"
+						sx={{ mt: 2 }}
+					>
+						{error}
+					</Alert>
+				)}
+			</Box>
+
+			<form onSubmit={handleSubmit}>
+				<Grid
+					container
+					spacing={3}
 				>
-					Close
-				</Button>
-			</Box>
-
-			<Box mb={4}>
-				{fetchError && (
-					<Alert
-						severity="error"
-						sx={{ mb: 2 }}
-					>
-						{fetchError}
-					</Alert>
-				)}
-				{submitError && (
-					<Alert
-						severity="error"
-						sx={{ mb: 2 }}
-					>
-						{submitError}
-					</Alert>
-				)}
-				{submitSuccess && (
-					<Alert
-						severity="success"
-						sx={{ mb: 2 }}
-					>
-						Registration submitted successfully!
-					</Alert>
-				)}
-			</Box>
-
-			{formData && (
-				<form onSubmit={handleSubmit}>
-					<Grid
-						container
-						spacing={3}
-					>
-						{questionComponents}
-					</Grid>
-
-					<Stack
-						direction="row"
-						spacing={2}
-						justifyContent="flex-end"
-						mt={6}
-						sx={{ px: isMobile ? 0 : 2 }}
-					>
-						<Button
-							type="submit"
-							variant="contained"
-							size="large"
-							disabled={submitting}
-							sx={{
-								minWidth: 140,
-								py: 1.5,
-								fontWeight: 600,
-								textTransform: "none",
-							}}
+					{formData.questions.map((question) => (
+						<Grid
+							item
+							xs={12}
+							key={question._id}
 						>
-							{submitting ? (
-								<CircularProgress
-									size={24}
-									sx={{ color: "white" }}
-								/>
-							) : (
-								"Submit Registration"
-							)}
-						</Button>
-					</Stack>
-				</form>
-			)}
+							{question.questionText}
+							<QuestionWrapper
+								required={question.required}
+								label={question.label}
+							>
+								{renderQuestion(question)}
+							</QuestionWrapper>
+						</Grid>
+					))}
+				</Grid>
+
+				<Stack
+					direction="row"
+					spacing={2}
+					justifyContent="flex-end"
+					mt={6}
+				>
+					<Button
+						onClick={handleCancel}
+						disabled={submitting}
+						variant="outlined"
+						color="inherit"
+					>
+						Cancel
+					</Button>
+					<Button
+						type="submit"
+						variant="contained"
+						disabled={submitting}
+						sx={{ minWidth: 140 }}
+					>
+						{submitting ? (
+							<CircularProgress
+								size={24}
+								sx={{ color: "white" }}
+							/>
+						) : (
+							"Apply Now"
+						)}
+					</Button>
+				</Stack>
+			</form>
 		</Container>
 	);
 };

@@ -55,11 +55,10 @@ const StudentAlumniSchema = new mongoose.Schema(
 				isCurrent: { type: Boolean, default: false },
 			},
 		],
-		mentors: [{ type: mongoose.Schema.Types.ObjectId, ref: "StudentAlumni" }],
 
-		// Alumni-Specific Fields
-		// expertiseAreas: [{ type: String }],
-		mentees: [{ type: mongoose.Schema.Types.ObjectId, ref: "StudentAlumni" }],
+		mentors: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+		mentees: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+
 		jobs: [
 			{
 				title: { type: String },
@@ -68,10 +67,6 @@ const StudentAlumniSchema = new mongoose.Schema(
 				duration: { type: String },
 				isCurrent: { type: Boolean, default: false },
 			},
-		],
-		eventsHosted: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
-		opportunities: [
-			{ type: mongoose.Schema.Types.ObjectId, ref: "Opportunity" },
 		],
 	},
 	{ timestamps: true }

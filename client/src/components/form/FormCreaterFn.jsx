@@ -7,6 +7,7 @@ import { useSelector } from "react-redux";
 // Form handler hooks
 export const useFormHandlers = (entityId, entityType, formType) => {
 	const { user } = useSelector((store) => store.auth);
+
 	const [formData, setFormData] = useState({
 		entityType: entityType,
 		entityId: entityId,
@@ -42,7 +43,7 @@ export const useFormHandlers = (entityId, entityType, formType) => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		try {
-			console.log(formData);
+			console.log("FOm", formData.entityType);
 			const response = await axios.post(
 				"http://localhost:3002/form/create",
 				formData

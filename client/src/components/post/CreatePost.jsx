@@ -118,138 +118,144 @@ const CreatePost = ({ onSubmit }) => {
 	};
 
 	return (
-		<div className="max-w-2xl mx-auto bg-white rounded-xl shadow-xl border border-gray-100 p-6 space-y-6">
-			{/* Header */}
-			<div className="flex items-center gap-3">
-				<div className="p-2 bg-blue-100 rounded-lg">
-					<MegaphoneIcon className="w-6 h-6 text-blue-600" />
+		<div className="relative max-h-[90vh] flex flex-col bg-white rounded-xl shadow-xl border border-gray-100">
+			{/* Header - Fixed at top */}
+			<div className="sticky top-0 z-10 bg-white p-6 border-b border-gray-100 rounded-t-xl">
+				<div className="flex items-center gap-3">
+					<div className="p-2 bg-blue-100 rounded-lg">
+						<MegaphoneIcon className="w-6 h-6 text-blue-600" />
+					</div>
+					<h2 className="text-2xl font-bold text-gray-900">
+						Create Club Announcement
+					</h2>
 				</div>
-				<h2 className="text-2xl font-bold text-gray-900">
-					Create Club Announcement
-				</h2>
 			</div>
 
-			{/* Content Editor */}
-			<div className="space-y-6">
-				{/* Text Input */}
-				<div className="space-y-2">
-					<label className="text-sm font-medium text-gray-700">
-						What's happening?
-					</label>
-					<textarea
-						className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-400 min-h-[120px]"
-						placeholder="Share updates, announcements, or event details..."
-						value={text}
-						onChange={(e) => setText(e.target.value)}
-					/>
-				</div>
-
-				{/* Category & Tags */}
-				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-					{/* Category Dropdown */}
+			{/* Scrollable Content */}
+			<div className="flex-1 overflow-y-auto p-6">
+				<div className="space-y-6">
+					{/* Text Input */}
 					<div className="space-y-2">
 						<label className="text-sm font-medium text-gray-700">
-							Category
+							What's happening?
 						</label>
-						<div className="relative">
-							<select
-								className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none  bg-no-repeat bg-[center_right_1rem]"
-								value={category}
-								onChange={(e) => setCategory(e.target.value)}
-							>
-								{categories.map((cat, index) => (
-									<option
-										key={index}
-										value={cat}
-									>
-										{cat}
-									</option>
-								))}
-							</select>
-						</div>
-					</div>
-
-					{/* Tags Input */}
-					<div className="space-y-2">
-						<label className="text-sm font-medium text-gray-700">
-							Add Tags
-						</label>
-						<input
-							type="text"
-							className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-400"
-							placeholder="#fundraiser #event #meeting"
-							value={tags}
-							onChange={(e) => setTags(e.target.value)}
+						<textarea
+							className="w-full p-4 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-400 min-h-[120px]"
+							placeholder="Share updates, announcements, or event details..."
+							value={text}
+							onChange={(e) => setText(e.target.value)}
 						/>
 					</div>
-				</div>
 
-				{/* File Upload */}
-				<div className="space-y-3">
-					<label className="text-sm font-medium text-gray-700">
-						Media Attachments
-					</label>
-					<label
-						className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed ${
-							isUploading
-								? "border-gray-200"
-								: "border-gray-300 hover:border-blue-500 cursor-pointer"
-						} transition-colors`}
-					>
-						<div className="text-center">
-							<FaTimes className="w-8 h-8 text-gray-400 mx-auto mb-3" />
-							<p className="text-gray-600">
-								{isUploading
-									? "Uploading files..."
-									: "Drag & drop files or click to upload"}
-							</p>
-							<p className="text-sm text-gray-500 mt-1">
-								Supports: JPEG, PNG, MP4 (max 5 files)
-							</p>
-						</div>
-						<input
-							type="file"
-							multiple
-							className="hidden"
-							onChange={handleFileUpload}
-							disabled={isUploading}
-						/>
-					</label>
-				</div>
-
-				{/* Attachment Preview */}
-				{attachments.length > 0 && (
-					<div className="grid grid-cols-3 gap-3">
-						{attachments.map((file, index) => (
-							<div
-								key={index}
-								className="relative group"
-							>
-								{file.fileType === "video" ? (
-									<video
-										src={file.fileUrl}
-										controls
-										className="w-full h-32 rounded-lg object-cover"
-									/>
-								) : (
-									<img
-										src={file.fileUrl}
-										alt={`Attachment ${index + 1}`}
-										className="w-full h-32 rounded-lg object-cover"
-									/>
-								)}
-								<button
-									onClick={() => removeAttachment(index)}
-									className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors shadow-sm"
+					{/* Category & Tags */}
+					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+						{/* Category Dropdown */}
+						<div className="space-y-2">
+							<label className="text-sm font-medium text-gray-700">
+								Category
+							</label>
+							<div className="relative">
+								<select
+									className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none  bg-no-repeat bg-[center_right_1rem]"
+									value={category}
+									onChange={(e) => setCategory(e.target.value)}
 								>
-									<FaTimes className="w-4 h-4" />
-								</button>
+									{categories.map((cat, index) => (
+										<option
+											key={index}
+											value={cat}
+										>
+											{cat}
+										</option>
+									))}
+								</select>
 							</div>
-						))}
-					</div>
-				)}
+						</div>
 
-				{/* Submit Button */}
+						{/* Tags Input */}
+						<div className="space-y-2">
+							<label className="text-sm font-medium text-gray-700">
+								Add Tags
+							</label>
+							<input
+								type="text"
+								className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition placeholder-gray-400"
+								placeholder="#fundraiser #event #meeting"
+								value={tags}
+								onChange={(e) => setTags(e.target.value)}
+							/>
+						</div>
+					</div>
+
+					{/* File Upload */}
+					<div className="space-y-3">
+						<label className="text-sm font-medium text-gray-700">
+							Media Attachments
+						</label>
+						<label
+							className={`flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed ${
+								isUploading
+									? "border-gray-200"
+									: "border-gray-300 hover:border-blue-500 cursor-pointer"
+							} transition-colors`}
+						>
+							<div className="text-center">
+								<FaTimes className="w-8 h-8 text-gray-400 mx-auto mb-3" />
+								<p className="text-gray-600">
+									{isUploading
+										? "Uploading files..."
+										: "Drag & drop files or click to upload"}
+								</p>
+								<p className="text-sm text-gray-500 mt-1">
+									Supports: JPEG, PNG, MP4 (max 5 files)
+								</p>
+							</div>
+							<input
+								type="file"
+								multiple
+								className="hidden"
+								onChange={handleFileUpload}
+								disabled={isUploading}
+							/>
+						</label>
+					</div>
+
+					{/* Attachment Preview */}
+					{attachments.length > 0 && (
+						<div className="grid grid-cols-3 gap-3">
+							{attachments.map((file, index) => (
+								<div
+									key={index}
+									className="relative group"
+								>
+									{file.fileType === "video" ? (
+										<video
+											src={file.fileUrl}
+											controls
+											className="w-full h-32 rounded-lg object-cover"
+										/>
+									) : (
+										<img
+											src={file.fileUrl}
+											alt={`Attachment ${index + 1}`}
+											className="w-full h-32 rounded-lg object-cover"
+										/>
+									)}
+									<button
+										onClick={() => removeAttachment(index)}
+										className="absolute -top-2 -right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors shadow-sm"
+									>
+										<FaTimes className="w-4 h-4" />
+									</button>
+								</div>
+							))}
+						</div>
+					)}
+				</div>
+			</div>
+
+			{/* Footer - Fixed at bottom */}
+			<div className="sticky bottom-0 z-10 bg-white p-6 border-t border-gray-100 rounded-b-xl">
 				<button
 					onClick={handleSubmit}
 					disabled={isUploading}

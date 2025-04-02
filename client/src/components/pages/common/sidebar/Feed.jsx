@@ -4,6 +4,8 @@ import PostCard from "../../../post/PostCard";
 import RightDetails from "../../../post/RightDetails";
 import useAllPosts from "../../../../hooks/useAllPosts";
 import CreatePost from "../../../post/CreatePost";
+import Notifications from "../../../post/Notifications";
+import { useSocket } from "../../../../config/socket";
 // import CreatePost from "../../../post/CreatePost"; // Import your CreatePost component
 
 const Feed = () => {
@@ -13,10 +15,14 @@ const Feed = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
 
 	const handlePostDeleted = (postId) => {
-		console.log("We h");
 		dispatch(removePost(postId));
 	};
 
+	const { notification } = useSocket();
+
+	if (notification) {
+		alert(notification);
+	}
 	useAllPosts();
 
 	return (

@@ -7,6 +7,7 @@ import {
 	savePostFn,
 	createPoll,
 	replyPoll,
+	getPost,
 	// getPostById,
 } from "../../controllers/Postings/post.controller.js";
 import { authMiddleware } from "../../middlewares/auth.Middleware.js";
@@ -49,4 +50,6 @@ router.delete(
 );
 
 router.put("/save/:postId/:clubId?", authMiddleware, savePostFn);
+
+router.get("/:postId", getPost);
 export default router;

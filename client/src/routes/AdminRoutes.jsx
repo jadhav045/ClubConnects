@@ -2,7 +2,7 @@ import { Route } from "react-router-dom";
 
 import CommonRoutes from "./CommonRoutes";
 import Dashboard from "../components/dashboard/Dashboard";
-import MangageUser from "../components/pages/admin/MangageUser";
+import ManageUser from "../components/pages/admin/ManageUser";
 import Reports from "../components/pages/admin/Reports";
 import InstitutionManagement from "../components/pages/admin/InstitutionManagement";
 
@@ -22,7 +22,7 @@ const AdminRoutes = () => {
 			/>
 			<Route
 				path="users"
-				element={<MangageUser />}
+				element={<ManageUser />}
 			/>
 			<Route
 				path="reports"

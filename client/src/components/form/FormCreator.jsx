@@ -17,6 +17,7 @@ import {
 	Paper,
 	IconButton,
 	ListItemText,
+	InputAdornment,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { styled } from "@mui/system";
@@ -35,7 +36,6 @@ const StyledButton = styled(Button)(({ theme }) => ({
 	marginBottom: theme.spacing(2),
 }));
 const FormCreator = ({ entityId, entityType, onClose, formType }) => {
-	console.log("Event Data:", entityId);
 	const {
 		formData,
 		setFormData,

@@ -7,9 +7,6 @@ export const createDiscussionFn = async (req, res) => {
 		const { title, description, category } = req.body;
 		const createdBy = req.user.id; // Extracted from auth middleware
 		const userRole = req.user.role; // Extracted from auth middleware
-
-		console.log(req.body);
-		// Check if user exists
 		const user = await User.findById(createdBy);
 		if (!user) return res.status(404).json({ message: "User not found" });
 
@@ -39,14 +36,20 @@ export const createDiscussionFn = async (req, res) => {
 export const getAllDiscussions = async (req, res) => {
 	console.log("D");
 	try {
-		const discussions = await Discussion.find().populate(
-			"createdBy",
-			"name email"
-		); // Populate user details if needed
-		// console.log(discussions);
+		const discussions = await Discussion.find()
+			.populate("createdBy", "profilePicture fullName _id")
+			.populate({
+				path: "comments.userId", // Populate userId inside comments
+				select: "fullName profilePicture role",
+			})
+			.populate({
+				path: "comments.replies.userId", // Populate userId inside replies
+				select: "fullName profilePicture role",
+			}); // Populate user details
+		console.log(discussions);
 		res.status(200).json({
 			success: true,
-			message: "DiscussionFetchsuccessfully",
+			message: "Discussions fetched successfully",
 			discussions,
 		});
 	} catch (error) {

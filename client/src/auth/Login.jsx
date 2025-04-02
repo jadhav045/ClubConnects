@@ -25,12 +25,13 @@ const Login = () => {
 				"http://localhost:3002/auth/login",
 				formData
 			);
-			localStorage.setItem("token", response.data.token);
+
 			toast.success(response.data.message);
 
-			// Store token in localStorage
+			// Store token in localStorage (IMPORTANT)
+			localStorage.setItem("token", response.data.token);
 
-			// Save user details in state
+			// Save user details in Redux state
 			dispatch(setAuthUser(response.data.user));
 
 			if (response.data.success) {

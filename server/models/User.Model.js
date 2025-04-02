@@ -17,16 +17,8 @@ const UserSchema = new mongoose.Schema(
 		phoneNumber: { type: String },
 		gender: { type: String, enum: ["Male", "Female"] },
 		dateOfBirth: { type: Date },
-		socialLinks: {
-			linkedIn: { type: String, default: "" },
-			twitter: { type: String, default: "" },
-			github: { type: String, default: "" },
-			personalWebsite: { type: String, default: "" },
-		},
 
-		posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
-		saved: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
-
+		
 		address: {
 			street: { type: String },
 			city: { type: String },
@@ -34,7 +26,13 @@ const UserSchema = new mongoose.Schema(
 			zipCode: { type: String },
 			country: { type: String },
 		},
-
+		
+		socialLinks: {
+			linkedIn: { type: String, default: "" },
+			twitter: { type: String, default: "" },
+			github: { type: String, default: "" },
+			personalWebsite: { type: String, default: "" },
+		},
 		awards: [
 			{
 				title: { type: String },
@@ -44,35 +42,16 @@ const UserSchema = new mongoose.Schema(
 			},
 		],
 
+		posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+		saved: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
 		eventParticipated: [{ type: Schema.Types.ObjectId, ref: "Event" }],
 		opportunities: [{ type: Schema.Types.ObjectId, ref: "Opportunity" }],
 		discussions: [{ type: Schema.Types.ObjectId, ref: "Discussion" }],
-		socketId: { type: String },
-		notifications: [
-			{
-				message: { type: String, required: true, trim: true },
-				isRead: { type: Boolean, default: false },
-				date: { type: Date, default: Date.now },
 
-				type: {
-					type: String,
-					enum: ["event", "post", "opportunity", "general"],
-					default: "general",
-				},
+		// For - alumni
+		eventsHosted: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
 
-				referenceId: {
-					type: mongoose.Schema.Types.ObjectId,
-					required: true,
-					refPath: "type",
-				},
-				// Dynamic reference to Event, Post, Opportunity, etc.
-
-				sender: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-				// Who sent the notification (Admin, Faculty, Alumni, etc.)
-
-				url: { type: String }, // Optional: Link to event/opportunity/post
-			},
-		],
+		following: [{ type: mongoose.Schema.Types.ObjectId, ref: "Club" }],
 
 		role: {
 			type: String,
@@ -90,23 +69,6 @@ const UserSchema = new mongoose.Schema(
 			},
 		},
 
-		appliedOpportunities: [
-			{
-				opportunity: {
-					type: mongoose.Schema.Types.ObjectId,
-					ref: "Opportunity",
-				},
-				status: String,
-				stage: Number,
-			},
-		],
-		notifications: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Notification",
-			},
-		],
-		// for only admin
 		createdFaculty: [
 			{
 				type: mongoose.Schema.Types.ObjectId,

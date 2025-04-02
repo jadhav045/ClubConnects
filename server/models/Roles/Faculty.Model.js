@@ -3,17 +3,20 @@ import mongoose, { Schema } from "mongoose";
 const FacultySchema = new mongoose.Schema(
 	{
 		department: { type: String },
-		designation: { type: String }, // Professor, Associate Professor, etc.
 		dateOfJoining: { type: Date },
+		designation: { type: String }, // Professor, Associate Professor, etc.
+
 		qualifications: [{ type: String }], // List of academic qualifications (PhD, Masters, etc.)
 		researchAreas: [{ type: String }], // List of faculty’s research areas
 		teachingSubjects: [{ type: String }], // List of subjects taught by the faculty member
-		createaClub: [
+
+		createdClub: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "Club",
 			},
 		],
+
 		publications: [
 			{
 				title: { type: String },

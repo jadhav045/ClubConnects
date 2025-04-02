@@ -1,97 +1,73 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import { ToastContainer } from "react-toastify";
+
 import ProtectedRoute from "./auth/ProtectedRoute";
 import Dashboard from "./components/dashboard/Dashboard";
+import NotFound from "./auth/NotFound";
+import Login from "./auth/Login";
+import Register from "./auth/Register";
+
 import AdminRoutes from "./routes/AdminRoutes";
 import AlumniRoutes from "./routes/AlumniRoutes";
 import StudentRoutes from "./routes/StudentRoutes";
 import FacultyRoutes from "./routes/FacultyRoutes";
 import ClubRoutes from "./routes/ClubRoutes";
-import NotFound from "./auth/NotFound";
 
-import Login from "./auth/Login";
-import Register from "./auth/Register";
-import { ToastContainer } from "react-toastify";
-import { ThemeProvider, createTheme } from "@mui/material/styles";
 
 const theme = createTheme();
 
-function App() {
+const App = () => {
+	const { user, token } = useSelector((state) => state.auth);
+
+
 	return (
-		<>
-			<ThemeProvider theme={theme}>
-				<ToastContainer />
-				<BrowserRouter>
-					<Routes>
-						<Route
-							path="/login"
-							element={<Login isLogin={true} />}
-						/>
-						<Route
-							path="/register"
-							element={<Register isLogin={false} />}
-						/>
+		<ThemeProvider theme={theme}>
+			<ToastContainer />
+			<BrowserRouter>
+				<Routes>
+					{/* Public Routes */}
+					<Route
+						path="/login"
+						element={<Login />}
+					/>
+					<Route
+						path="/register"
+						element={<Register />}
+					/>
 
+					{/* Protected Routes */}
+					{[
+						{ path: "admin", roles: ["admin"], Component: AdminRoutes },
+						{ path: "alumni", roles: ["alumni"], Component: AlumniRoutes },
+						{ path: "club", roles: ["club"], Component: ClubRoutes },
+						{ path: "faculty", roles: ["faculty"], Component: FacultyRoutes },
+						{ path: "student", roles: ["student"], Component: StudentRoutes },
+					].map(({ path, roles, Component }) => (
 						<Route
-							path="/admin"
+							key={path}
+							path={`/${path}`}
 							element={
-								<ProtectedRoute allowedRoles={["admin"]}>
+								<ProtectedRoute allowedRoles={roles}>
 									<Dashboard />
 								</ProtectedRoute>
 							}
 						>
-							{AdminRoutes()}
+							{Component()}
 						</Route>
+					))}
 
-						<Route
-							path="/alumni"
-							element={
-								<ProtectedRoute allowedRoles={["alumni"]}>
-									<Dashboard />
-								</ProtectedRoute>
-							}
-						>
-							{AlumniRoutes()}
-						</Route>
-
-						<Route
-							path="/club"
-							element={
-								<ProtectedRoute allowedRoles={["club"]}>
-									<Dashboard />
-								</ProtectedRoute>
-							}
-						>
-							{ClubRoutes()}
-						</Route>
-						<Route
-							path="/faculty"
-							element={
-								<ProtectedRoute allowedRoles={["faculty"]}>
-									<Dashboard />
-								</ProtectedRoute>
-							}
-						>
-							{FacultyRoutes()}
-						</Route>
-						<Route
-							path="/student"
-							element={
-								<ProtectedRoute allowedRoles={["student"]}>
-									<Dashboard />
-								</ProtectedRoute>
-							}
-						>
-							{StudentRoutes()}
-						</Route>
-						<Route
-							path="*"
-							element={<NotFound />}
-						/>
-					</Routes>
-				</BrowserRouter>
-			</ThemeProvider>
-		</>
+					{/* Not Found Route */}
+					<Route
+						path="*"
+						element={<NotFound />}
+					/>
+				</Routes>
+			</BrowserRouter>
+		</ThemeProvider>
 	);
-}
+};
+
 export default App;

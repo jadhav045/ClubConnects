@@ -6,7 +6,7 @@ import { StudentAlumni } from "../models/Roles/StudentAlumni.Model.js";
 const JWT_SECRET = "your_jwt_secret_key"; // Replace with your secret key
 
 export const register = async (req, res) => {
-	console.log("BakendCall at Register", req.body);
+	// console.log("BakendCall at Register", req.body);
 	const { fullName, email, prn, role, password } = req.body;
 
 	try {
@@ -53,7 +53,6 @@ export const register = async (req, res) => {
 			.json({ message: "Registration failed", error: error.message });
 	}
 };
-
 export const login = async (req, res) => {
 	const { emailOrPrn, password } = req.body;
 
@@ -80,24 +79,24 @@ export const login = async (req, res) => {
 		const payload = {
 			id: user._id,
 			role: user.role,
-			profileId: user.profileId,
+			profileId: user.profileId._id,
 		};
 
-		// Add collegeId only if the role is "Faculty"
 		if (user.role === "Faculty" && user.profileId?.college) {
 			payload.collegeId = user.profileId.college;
 		}
+		console.log("JWT_SECRET:", process.env.JWT_SECRET);
 
 		const token = jwt.sign(payload, process.env.JWT_SECRET, {
-			expiresIn: "1d",
+			expiresIn: 86400, // 1 day = 86400 seconds
 		});
 
-		// Set token as a cookie
+		// Set token in cookie with correct expiration time
 		res.cookie("token", token, {
-			httpOnly: true, // Prevents JavaScript access to cookie
-			secure: process.env.NODE_ENV === "production", // Secure in production (HTTPS)
-			sameSite: "strict", // CSRF protection
-			maxAge: 3600000, // 1 hour expiration
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+			maxAge: 24 * 60 * 60 * 1000, // 1 day (matches JWT expiration)
 		});
 
 		res
@@ -107,14 +106,122 @@ export const login = async (req, res) => {
 		res.status(500).json({ message: "Login failed", error: error.message });
 	}
 };
+export const getUserProfile = async (req, res) => {
+	const { userId } = req.params;
 
-export const logout = (req, res) => {
-	res.clearCookie("token", {
-		httpOnly: true,
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict",
-	});
-	res.status(200).json({ message: "Logout successful" });
+	console.log(userId);
+	try {
+		// Fetch user with only role and profileId initially
+		const user = await User.findById(userId).select("role profileId");
+
+		if (!user) {
+			return res
+				.status(404)
+				.json({ success: false, message: "User not found" });
+		}
+
+		// Common population for all users
+		const populateOptions = [
+			{ path: "profileId" },
+			{ path: "posts" },
+			{ path: "saved" },
+			{ path: "eventParticipated" },
+			{ path: "opportunities" },
+			{ path: "discussions" },
+		];
+
+		// Additional population for Faculty
+		if (user.role === "Faculty") {
+			populateOptions.push({
+				path: "profileId",
+				populate: { path: "createdClub" },
+			});
+		}
+
+		// Fully populate user data
+		const populatedUser = await User.findById(userId).populate(populateOptions);
+
+		// Populate clubsJoined for Alumni and Students
+		if (
+			["Alumni", "Student"].includes(user.role) &&
+			populatedUser.profileId?.clubsJoined?.length
+		) {
+			const populatedClubs = await Club.find({
+				_id: {
+					$in: populatedUser.profileId.clubsJoined.map((club) => club.clubId),
+				},
+			}).select("clubName clubDescription");
+
+			// Map back to the original structure
+			populatedUser.profileId.clubsJoined =
+				populatedUser.profileId.clubsJoined.map((club) => ({
+					...club.toObject(), // Keep original properties (e.g., role, joinedDate)
+					clubId: populatedClubs.find(
+						(c) => c._id.toString() === club.clubId.toString()
+					), // Populate clubId with full club details
+				}));
+		}
+
+		// console.log("Created Club", populatedUser.profileId.createdClub);
+
+		return res.json({ success: true, user: populatedUser });
+	} catch (error) {
+		return res
+			.status(500)
+			.json({ message: "Server error", error: error.message });
+	}
 };
 
-// Let me know if you’d like me to refine anything or add more features! 🚀
+export const logout = (req, res) => {
+	try {
+		console.log("Logging out user...");
+		res.clearCookie("token", {
+			httpOnly: true,
+			secure: process.env.NODE_ENV === "production",
+			sameSite: "strict",
+		});
+		console.log("Token cookie cleared successfully.");
+		res.status(200).json({ message: "Logout successful" });
+	} catch (error) {
+		console.error("Error during logout:", error);
+		res.status(500).json({ message: "Internal Server Error" });
+	}
+};
+import mongoose from "mongoose";
+import { Club } from "../models/Roles/Club.Model.js";
+
+export const updateUserProfile = async (req, res) => {
+	try {
+		const userId = req.user.id; // Get authenticated user ID
+		const updateData = req.body;
+
+		console.log("At Update", updateData);
+		// Ensure `profileId` is valid and exists
+		if (
+			updateData.profileId &&
+			!mongoose.Types.ObjectId.isValid(updateData.profileId)
+		) {
+			return res.status(400).json({ message: "Invalid profileId" });
+		}
+
+		// Update User Profile
+		const updatedUser = await User.findByIdAndUpdate(
+			userId,
+			{ ...updateData }, // ✅ Spread the updateData object
+			{ new: true, runValidators: true }
+		);
+
+		if (!updatedUser) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		console.log("Updated Yser", updatedUser);
+
+		return res.status(200).json({
+			message: "Profile updated successfully",
+			user: updatedUser,
+		});
+	} catch (error) {
+		console.error("Error updating profile:", error);
+		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};

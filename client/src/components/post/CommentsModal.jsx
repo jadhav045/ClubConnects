@@ -6,6 +6,8 @@ import {
 	FaRegPaperPlane,
 } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../../routes/apiConfig";
 
 const CommentsModal = ({
 	isOpen,
@@ -26,7 +28,14 @@ const CommentsModal = ({
 	isSubmittingReply,
 }) => {
 	if (!isOpen) return null;
+	const navigate = useNavigate();
 
+	const handleNavigate = (userId, role) => {
+		console.log(userId);
+		if (userId) {
+			navigate(`/${currentUser.role}/profile/${userId}`);
+		}
+	};
 	return (
 		<div className="fixed inset-0  bg-opacity-80 flex items-center justify-center z-50">
 			<div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] flex flex-col">
@@ -52,12 +61,15 @@ const CommentsModal = ({
 								<img
 									src={comment.userId?.profilePicture}
 									alt="Profile"
-									className="w-8 h-8 rounded-full object-cover"
+									className="w-8 h-8 rounded-full object-cover cursor-pointer"
+									onClick={() =>
+										handleNavigate(comment.userId?._id, comment.userId.role)
+									}
 								/>
 								<div className="flex-1">
 									<div className="flex items-baseline gap-2">
 										<span className="font-semibold text-sm">
-											{comment.userId?.fullName}
+											{comment.userId?.fullName || "undefined"}
 										</span>
 										<span className="text-xs text-gray-500">
 											{formatDistanceToNow(new Date(comment.timestamp), {
@@ -124,12 +136,23 @@ const CommentsModal = ({
 													<img
 														src={reply.userId?.profilePicture}
 														alt="Profile"
-														className="w-6 h-6 rounded-full object-cover"
+														className="w-6 h-6 rounded-full object-cover cursor-pointer"
+														onClick={() =>
+															handleNavigate(reply.userId, reply.userId.role)
+														}
 													/>
 													<div className="flex-1">
 														<div className="flex items-baseline gap-2">
-															<span className="font-semibold text-sm">
-																{reply.userId?.fullName}
+															<span
+																className="font-semibold text-sm cursor-pointer"
+																onClick={() =>
+																	handleNavigate(
+																		reply.userId?._id,
+																		reply.userId.role
+																	)
+																}
+															>
+																{reply.userId?.fullName || "undefinedReplyId"}
 															</span>
 															<span className="text-xs text-gray-500">
 																{formatDistanceToNow(

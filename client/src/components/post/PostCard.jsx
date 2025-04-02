@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
 	FaEllipsisH,
 	FaRegHeart,
@@ -17,7 +17,11 @@ import "swiper/css/pagination";
 import { usePostCard } from "./postCardFn";
 import CommentsModal from "./CommentsModal";
 
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../../routes/apiConfig";
+
 const PostCard = ({ post, currentUser }) => {
+	console.log("post", post);
 	const [showComments, setShowComments] = useState(false);
 	const {
 		showOptions,
@@ -46,22 +50,35 @@ const PostCard = ({ post, currentUser }) => {
 		handleDeletePost,
 	} = usePostCard(post, currentUser);
 
+	const user = getUser();
+
+	const navigate = useNavigate();
+
+	const handleNavigate = () => {
+		if (post?.authorId?._id) {
+			navigate(`/${user.role}/profile/${post.authorId._id}`);
+		}
+	};
+
 	return (
 		<div className="bg-white max-w-[500px] w-full mx-auto mb-4 sm:rounded-lg overflow-hidden border border-gray-200 shadow-sm">
 			{/* Header */}
 			<div className="flex items-center justify-between p-2.5">
 				<div className="flex items-center space-x-2">
-					<img
-						src={post?.authorId?.profilePicture}
-						alt="Profile"
-						className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
-					/>
-					<div>
+					<button
+						onClick={handleNavigate}
+						className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md cursor-pointer transition duration-200"
+					>
+						<img
+							src={post?.authorId?.profilePicture}
+							alt="Profile"
+							className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
+						/>
 						<h4 className="text-sm font-semibold">
 							{post?.authorId?.fullName}
 						</h4>
-						<p className="text-xs text-gray-500">{post?.category}</p>
-					</div>
+					</button>
+					<p className="text-xs text-gray-500">{post?.category}</p>
 				</div>
 				<div className="relative">
 					<button

@@ -4,6 +4,7 @@ import { Form } from "../models/Form/Form.js";
 import { Response } from "../models/Form/Response.js";
 import { Event } from "../models/Postings/Event.Model.js";
 import { User } from "../models/User.Model.js";
+import { Opportunity } from "../models/Postings/Opportunity.js";
 
 const router = express.Router();
 
@@ -19,6 +20,7 @@ router.post("/create", async (req, res) => {
 			creatorType,
 		} = req.body;
 
+		// console.log(req.body);
 		// Validate required fields
 		if (
 			!entityType ||
@@ -186,69 +188,66 @@ router.post("/submit", async (req, res) => {
 	}
 });
 
-// controllers/form.controller.js
 const getEntityForms = async (req, res) => {
 	try {
-		console.log("getEntityForms", req.body);
 		const { entityType, entityId } = req.params;
 		const { formType } = req.query;
 
-		console.log(req.body);
-		// Validate entity parameters
-		if (!entityType || !entityId) {
-			return res.status(400).json({ error: "Missing entity parameters" });
+		// Validate entity parameters with early return
+		const validationError = validateEntityParams(entityType, entityId);
+		if (validationError) {
+			console.log("Validation error:", validationError);
+			return res.status(400).json(validationError);
 		}
 
-		if (!["Event", "Opportunity"].includes(entityType)) {
-			return res.status(400).json({ error: "Invalid entity type" });
+		// Validate form types with early return
+		const { requestedTypes, error: formTypeError } =
+			validateFormTypes(formType);
+		if (formTypeError) {
+			// console.log("Form type error:", formTypeError);
+			return res.status(400).json(formTypeError);
 		}
 
-		if (!mongoose.Types.ObjectId.isValid(entityId)) {
-			return res.status(400).json({ error: "Invalid entity ID format" });
-		}
-
-		// Validate and parse formType parameter
-		const validFormTypes = ["REGISTRATION", "FEEDBACK"];
-		const requestedTypes = formType ? formType.split(",") : validFormTypes;
-
-		const invalidTypes = requestedTypes.filter(
-			(t) => !validFormTypes.includes(t)
-		);
-		if (invalidTypes.length > 0) {
-			return res.status(400).json({
-				error: `Invalid form type(s): ${invalidTypes.join(", ")}`,
-			});
-		}
-
-		// Find requested forms in a single query
 		const forms = await Form.find({
 			entityType,
 			entityId,
 			formType: { $in: requestedTypes },
-		});
+		}).lean(); // Use lean() for better performance
 
-		// If only one form type is requested, return it directly
 		if (requestedTypes.length === 1) {
 			const form = forms.find((f) => f.formType === requestedTypes[0]);
-			return res.status(200).json({
-				success: true,
-				form: form || null, // Return null if not found
-			});
+			const response = {
+				success: form ? true : false,
+				...(form
+					? {
+							form,
+							questions: form.questions || [], // Add questions explicitly
+					  }
+					: {
+							message: `No ${
+								requestedTypes[0]
+							} form found for this ${entityType.toLowerCase()}`,
+					  }),
+			};
+
+			return res.status(form ? 200 : 404).json(response);
 		}
 
-		// console.log(forms);
-		// If multiple form types are requested, return them in an object
-		const result = requestedTypes.reduce((acc, type) => {
+		// Multiple form types request
+		const formattedResult = requestedTypes.reduce((acc, type) => {
 			acc[type.toLowerCase()] = forms.find((f) => f.formType === type) || null;
 			return acc;
 		}, {});
 
-		return res.status(200).json({
+		const response = {
 			success: true,
-			form: result,
-		});
+			forms: formattedResult,
+		};
+
+		return res.status(200).json(response);
 	} catch (error) {
-		res.status(500).json({
+		console.error("Error in getEntityForms:", error);
+		return res.status(500).json({
 			success: false,
 			error: "Server Error",
 			details: error.message,
@@ -256,10 +255,51 @@ const getEntityForms = async (req, res) => {
 	}
 };
 
+// Helper function to validate entity parameters
+const validateEntityParams = (entityType, entityId) => {
+	if (!entityType || !entityId) {
+		return { error: "Missing entity parameters" };
+	}
+
+	if (!["Event", "Opportunity"].includes(entityType)) {
+		return { error: "Invalid entity type" };
+	}
+
+	if (!mongoose.Types.ObjectId.isValid(entityId)) {
+		return { error: "Invalid entity ID format" };
+	}
+
+	return null;
+};
+
+// Helper function to validate form types
+const validateFormTypes = (formType) => {
+	const validFormTypes = ["REGISTRATION", "FEEDBACK"];
+	const requestedTypes = formType ? formType.split(",") : validFormTypes;
+
+	const invalidTypes = requestedTypes.filter(
+		(t) => !validFormTypes.includes(t)
+	);
+	if (invalidTypes.length > 0) {
+		return {
+			error: `Invalid form type(s): ${invalidTypes.join(", ")}`,
+			requestedTypes: null,
+		};
+	}
+
+	return { requestedTypes, error: null };
+};
+
+// Export the controller
+export { getEntityForms };
+
+// Update the route
+router.get("/:entityType/:entityId", getEntityForms);
+
 router.get("/:entityType/:entityId/:formType", async (req, res) => {
 	try {
 		const { entityType, entityId, formType } = req.params;
-		console.log(req.params);
+		// console.log(req.params);
 
 		// Validate entityId as a valid MongoDB ObjectId
 		if (!mongoose.Types.ObjectId.isValid(entityId)) {
@@ -308,8 +348,12 @@ router.get("/:entityType/:entityId/:formType", async (req, res) => {
 					questionText: question?.questionText || "Question deleted",
 					questionType: question?.questionType || "Unknown",
 					answer: answer.value,
+					questionId: question?._id,
 				};
 			});
+
+			// console.log(answersWithQuestions);
+			// console.log(userDetails);
 
 			return {
 				user: userDetails,
@@ -325,5 +369,4 @@ router.get("/:entityType/:entityId/:formType", async (req, res) => {
 	}
 });
 
-router.get("/:entityType/:entityId", getEntityForms);
 export default router;

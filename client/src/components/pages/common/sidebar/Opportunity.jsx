@@ -1,13 +1,11 @@
 import React from "react";
-import FeedbackList from "../../../../QuestionAnswer/FeedbackList";
+
+import CreateOpportunity from "../opportunity/CreateOpportunity";
 
 const Opportunity = () => {
 	return (
 		<div>
-			{/* I am thinking to put as common
-			 */}
-
-			<FeedbackList />
+			<CreateOpportunity />
 		</div>
 	);
 };

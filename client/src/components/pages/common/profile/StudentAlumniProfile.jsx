@@ -1,135 +1,140 @@
-import React from "react";
+import React, { useState } from "react";
+import Actions from "./Actions";
 import {
-	Globe,
-	Briefcase,
-	Users,
-	Calendar,
-	Star,
-	GraduationCap,
-	Activity,
-} from "lucide-react";
+  Awards,
+  ClubsJoined,
+  CreatedClub,
+  FacultyExtra,
+  FacultyPublications,
+  Skills,
+  SocialLinks,
+} from "./SubComponent";
+import { ResponsiveNavigation } from "./ResponsiveNavigation";
+import { useNavigate } from "react-router-dom";
+import UpdateProfile from "./UpdateProfile";
 
 const StudentAlumniProfile = ({ user }) => {
-	return (
-		<div className="p-6">
-			<h2 className="text-2xl font-bold mb-4">Profile Details</h2>
-			<div className="space-y-6">
-				{/* Common Fields */}
-				<div>
-					<h3 className="text-xl font-semibold">Common Details</h3>
-					<p>
-						<GraduationCap
-							size={16}
-							className="inline mr-2"
-						/>{" "}
-						Department: {user.department}
-					</p>
-					<p>
-						<Calendar
-							size={16}
-							className="inline mr-2"
-						/>{" "}
-						Enrollment Year: {user.enrollmentYear}
-					</p>
-					<p>
-						<Calendar
-							size={16}
-							className="inline mr-2"
-						/>{" "}
-						Graduation Year: {user.graduationYear}
-					</p>
-					<p>
-						<Star
-							size={16}
-							className="inline mr-2"
-						/>{" "}
-						CGPA: {user.cgpa}
-					</p>
-					<p>
-						<Activity
-							size={16}
-							className="inline mr-2"
-						/>{" "}
-						Skills: {user.skills.join(", ")}
-					</p>
-				</div>
+  const navigate = useNavigate();
+  const {
+    profileId,
+    role,
+    fullName,
+    prn,
+    email,
+    phoneNumber,
+    gender,
+    address,
+    socialLinks,
+    awards,
+  } = user;
 
-				{/* Clubs Joined */}
-				<div>
-					<h3 className="text-xl font-semibold">Clubs & Roles</h3>
-					{user.clubsJoined.map((club, index) => (
-						<div
-							key={index}
-							className="border p-3 rounded mb-2"
-						>
-							<p>
-								<Users
-									size={16}
-									className="inline mr-2"
-								/>{" "}
-								Club Role: {club.role}
-							</p>
-							<p>Joined on: {new Date(club.joinedDate).toLocaleDateString()}</p>
-						</div>
-					))}
-				</div>
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const openModal = () => {
+    setIsModalOpen(true); // Open modal
+  };
 
-				{/* Role-Specific Fields */}
-				{user.role === "student" && (
-					<div>
-						<h3 className="text-xl font-semibold">Internships & Mentors</h3>
-						{user.internships.map((internship, index) => (
-							<div
-								key={index}
-								className="border p-3 rounded mb-2"
-							>
-								<p>
-									<Briefcase
-										size={16}
-										className="inline mr-2"
-									/>{" "}
-									{internship.title} at {internship.company}
-								</p>
-								<p>
-									Duration: {internship.duration}{" "}
-									{internship.isCurrent ? "(Current)" : ""}
-								</p>
-							</div>
-						))}
-						<p>Mentors: {user.mentors.length}</p>
-					</div>
-				)}
+  const closeModal = () => {
+    setIsModalOpen(false); // Close modal
+  };
 
-				{user.role === "alumni" && (
-					<div>
-						<h3 className="text-xl font-semibold">Jobs & Mentees</h3>
-						{user.jobs.map((job, index) => (
-							<div
-								key={index}
-								className="border p-3 rounded mb-2"
-							>
-								<p>
-									<Briefcase
-										size={16}
-										className="inline mr-2"
-									/>{" "}
-									{job.title} at {job.company}
-								</p>
-								<p>
-									Duration: {job.duration} {job.isCurrent ? "(Current)" : ""}
-								</p>
-							</div>
-						))}
-						<p>Mentees: {user.mentees.length}</p>
-						<p>Events Hosted: {user.eventsHosted.length}</p>
-						<p>Opportunities Shared: {user.opportunities.length}</p>
-					</div>
-				)}
-			</div>
-		</div>
-	);
+  return (
+    <div className="max-w-4xl mx-auto bg-white shadow-md rounded-lg p-6">
+      {/* Header Section */}
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-bold text-gray-800">Profile</h2>
+        <button
+          onClick={openModal}
+          className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-blue-700 transition"
+        >
+          Update Profile
+        </button>
+      </div>
+
+      {/* Profile Section */}
+      <div className="flex flex-col sm:flex-row items-center gap-6">
+        <div>
+          <img
+            src={user.profilePicture || "https://via.placeholder.com/150"}
+            alt="Profile"
+            className="w-32 h-32 rounded-full shadow-md object-cover"
+          />
+          <p>Branch: {profileId?.department || "NA"}</p>
+          {role === "Faculty" && (
+            <>
+              <p>Joined On: {profileId.dateOfJoining || "1999"}</p>
+              <p>{profileId.designation || "Professor"}</p>
+            </>
+          )}
+          {(role === "Alumni" || role === "Student") && (
+            <p>
+              {profileId.enrollmentYear || "2022"} -{" "}
+              {profileId.graduationYear || "2026"}
+            </p>
+          )}
+        </div>
+        <div className="text-center sm:text-left">
+          <h3 className="text-xl font-semibold text-gray-900">{fullName}</h3>
+          <p className="text-gray-600">PRN: {prn}</p>
+          <p className="text-gray-600">Email: {email}</p>
+          <p className="text-gray-600">Phone: {phoneNumber}</p>
+          <p className="text-gray-600">Gender: {gender}</p>
+        </div>
+      </div>
+
+      {/* Address Section */}
+      <div className="mt-4 p-4 bg-gray-100 rounded-md">
+        <strong>Address:</strong> {address?.street || "Unknown"}, {address?.city || "Unknown"}, {address?.state || "Unknown"}, {address?.zipCode || "000000"}, {address?.country || "Unknown"}
+      </div>
+
+      {/* Faculty Specific Sections */}
+      {role === "Faculty" && profileId && (
+        <>
+          <FacultyExtra
+            qualifications={profileId.qualifications}
+            researchAreas={profileId.researchAreas}
+            teachingSubjects={profileId.teachingSubjects}
+          />
+          <CreatedClub
+            clubs={profileId.createdClub}
+            role={role}
+          />
+          <FacultyPublications publications={profileId.publications} />
+        </>
+      )}
+
+      {/* Student/Alumni Specific Sections */}
+      {(role === "Alumni" || role === "Student") && (
+        <ClubsJoined clubsJoined={profileId?.clubsJoined} />
+      )}
+
+      {/* Social Links */}
+      <SocialLinks socialLinks={socialLinks} />
+
+      {/* Awards & Skills Section */}
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="bg-gray-50 p-4 rounded-md shadow-sm">
+          <Awards awards={awards} />
+        </div>
+        {(role === "Alumni" || role === "Student") && (
+          <div className="bg-gray-50 p-4 rounded-md shadow-sm">
+            <Skills skills={profileId?.skills} />
+          </div>
+        )}
+      </div>
+
+      {/* Responsive Navigation */}
+      <ResponsiveNavigation user={user} />
+
+      {/* Modal for updating profile */}
+      {isModalOpen && (
+        <div className="modal-container fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="modal-content bg-white p-8 rounded-lg">
+            <UpdateProfile user={user} closeModal={closeModal} />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default StudentAlumniProfile;
-
-// Let me know if you want any adjustments or extra features! 🚀

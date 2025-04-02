@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { removePost } from "../../store/slice/postSlice";
 
+
 export const usePostCard = (post, currentUser, onPostDeleted) => {
 	const { posts } = useSelector((store) => store.post);
 
@@ -28,7 +29,9 @@ export const usePostCard = (post, currentUser, onPostDeleted) => {
 		}
 	}, [post?.likes, currentUser?._id]);
 
-	// Toggle Like with API call
+
+
+	// Toggle Like with API call and socket
 	const handleLike = async () => {
 		try {
 			const token = localStorage.getItem("token");
@@ -36,6 +39,10 @@ export const usePostCard = (post, currentUser, onPostDeleted) => {
 				toast.error("Please login to like posts");
 				return;
 			}
+
+			// Optimistic update
+			setLiked(!liked);
+			setLikes((prev) => (liked ? prev - 1 : prev + 1));
 
 			const response = await axios.put(
 				`http://localhost:3002/post/${post?._id}/like`,
@@ -48,14 +55,17 @@ export const usePostCard = (post, currentUser, onPostDeleted) => {
 			);
 
 			if (response.data.success) {
-				setLiked(!liked);
-				setLikes(response.data.totalLikes);
+				// Update was successful
 				toast.success(response.data.message);
+			} else {
+				// Revert optimistic update if failed
+				setLiked(liked);
+				setLikes(likes);
 			}
 		} catch (error) {
 			console.error("Error toggling like:", error);
 			toast.error(error.response?.data?.message || "Failed to update like");
-			// Revert optimistic update if failed
+			// Revert optimistic update
 			setLiked(liked);
 			setLikes(likes);
 		}

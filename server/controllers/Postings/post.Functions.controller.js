@@ -1,9 +1,7 @@
+import { io } from "../../index.js";
 import { Post } from "../../models/Postings/Post.Model.js";
-import { Event } from "../../models/Postings/Event.Model.js";
-import { Club } from "../../models/Roles/Club.Model.js";
-import { User } from "../../models/User.Model.js";
-
 import mongoose from "mongoose";
+import { addNotification } from "../notification.controller.js";
 
 export const toggleLikePost = async (req, res) => {
 	try {
@@ -13,6 +11,7 @@ export const toggleLikePost = async (req, res) => {
 		// Ensure userId is an ObjectId
 		const objectIdUserId = new mongoose.Types.ObjectId(userId);
 
+		// Find the post by ID
 		const post = await Post.findById(id);
 		if (!post) {
 			return res.status(404).json({ message: "Post not found" });
@@ -25,8 +24,18 @@ export const toggleLikePost = async (req, res) => {
 			// Remove like
 			post.likes.pull(objectIdUserId);
 		} else {
-			// Add like (just the ObjectId, not an object)
+			// Add like
 			post.likes.push(objectIdUserId);
+
+			const data = {
+				type: "TRIP_UPDATE",
+				from: userId,
+				to: [post.authorId],
+				postId: post._id,
+				message: `Your post having ${post._id} has been liked by ${userId}`,
+			};
+			await addNotification(data);
+			// io.emit("notification",`${userId} has liked your post ${post._id}`);
 		}
 
 		await post.save();
@@ -34,19 +43,22 @@ export const toggleLikePost = async (req, res) => {
 		return res.json({
 			message: isLiked ? "Like removed" : "Post liked",
 			success: true,
-			totalLikes: post.likes.length, // Return updated like count
+			totalLikes: post.likes.length,
+			isLiked: !isLiked,
 		});
 	} catch (err) {
-		return res
-			.status(500)
-			.json({ message: "Server error", error: err.message });
+		console.error("Error in toggleLikePost:", err);
+		return res.status(500).json({
+			message: "Server error",
+			error: err.message,
+		});
 	}
 };
 
 export const addComment = async (req, res) => {
 	try {
 		const { text } = req.body;
-
+		const userId = req.user.id;
 		if (!text) {
 			return res.status(400).json({ message: "Comment cannot be empty" });
 		}
@@ -71,6 +83,15 @@ export const addComment = async (req, res) => {
 
 		await post.save();
 
+		const data = {
+			type: "TRIP_UPDATE",
+			from: userId,
+			to: [post.authorId],
+			// tripId: "trip456",
+			message: `Your post having ${post._id} has been commented by ${userId} as comment ${text}`,
+		};
+		await addNotification(data);
+
 		return res.status(201).json({
 			message: "Comment added successfully",
 			success: true,
@@ -84,8 +105,6 @@ export const addComment = async (req, res) => {
 		});
 	}
 };
-
-
 
 // Function to delete a comment (including its replies)
 export const deleteComment = async (req, res) => {
@@ -105,8 +124,7 @@ export const deleteComment = async (req, res) => {
 
 		// Check ownership
 		if (
-			post.comments[commentIndex].userId.toString() !==
-				req.user.id &&
+			post.comments[commentIndex].userId.toString() !== req.user.id &&
 			req.user.role !== "Admin"
 		) {
 			return res

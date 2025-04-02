@@ -47,6 +47,7 @@ import axios from "axios";
 import ResponseDialog from "../form/ResponseDialog";
 import ScheduleIcon from "@mui/icons-material/Schedule";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const Overview = ({ description }) => (
 	<p className="text-gray-700 leading-relaxed">{description}</p>
@@ -90,6 +91,7 @@ const EventCard = ({ event, userId }) => {
 	const [loadingResponses, setLoadingResponses] = useState(false);
 	const [responsesError, setResponsesError] = useState("");
 	// const { user } = useSelector((store) => store.auth);
+	const navigate = useNavigate();
 
 	const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
 	const [isFormRegisterOpen, setIsFormRegisterOpen] = useState(false);
@@ -284,7 +286,12 @@ const EventCard = ({ event, userId }) => {
 					</div>
 					<div className="flex items-center gap-4">
 						<User className="w-6 h-6 text-green-500" />
-						<span className="text-lg font-medium text-gray-700">
+						<span
+							className="text-lg font-medium text-gray-700 cursor-pointer hover:text-blue-500"
+							onClick={() =>
+								navigate(`/${user.role}/clubs/${event?.organizer._id}`)
+							}
+						>
 							Organized by {event?.organizer?.clubName}
 						</span>
 						{/* <span>EventId {event._id}</span> */}
@@ -292,18 +299,21 @@ const EventCard = ({ event, userId }) => {
 
 					<div className="flex items-center gap-4">
 						<Box className="w-6 h-6 text-blue-500" />
-						<span className={`text-lg font-medium ${getRegistrationStatusColor()}`}>
+						<span
+							className={`text-lg font-medium ${getRegistrationStatusColor()}`}
+						>
 							Registration {event.registrationStatus.toLowerCase()}
 						</span>
 					</div>
 
 					<div className="flex items-center gap-4">
 						<Clock className="w-6 h-6 text-yellow-500" />
-						<span className={isEventClosed() ? "text-red-500" : "text-green-500"}>
-							{isEventClosed() 
+						<span
+							className={isEventClosed() ? "text-red-500" : "text-green-500"}
+						>
+							{isEventClosed()
 								? "Registration Closed"
-								: useCountdown(new Date(event?.registrationDeadline))
-							}
+								: useCountdown(new Date(event?.registrationDeadline))}
 						</span>
 					</div>
 				</CardContent>
@@ -324,9 +334,9 @@ const EventCard = ({ event, userId }) => {
 						className="rounded-full"
 						disabled={
 							isEventClosed() || // Add this condition
-							user?.role !== "Faculty" &&
-							user?.role !== "Alumni" &&
-							isRegistered
+							(user?.role !== "Faculty" &&
+								user?.role !== "Alumni" &&
+								isRegistered)
 						} // Disable if user is already registered
 					>
 						<BookOpen className="mr-2" />
