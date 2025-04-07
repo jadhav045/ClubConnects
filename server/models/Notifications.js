@@ -10,7 +10,6 @@ export const NotificationType = {
 	NEW_MESSAGE: "NEW_MESSAGE", // Notifications for new chat messages
 };
 
-// Define the schema for Notification
 const NotificationSchema = new mongoose.Schema(
 	{
 		type: {
@@ -29,29 +28,18 @@ const NotificationSchema = new mongoose.Schema(
 				required: true,
 			},
 		],
-		tripId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Trip", // Reference to the Trip model (if the notification is related to a trip)
-			required: false,
+		entityType: {
+			type: String,
+			enum: ["Opportunity", "Event", "Post", "Discussion"],
+			required: true,
 		},
-		bookingId: {
+		entityId: {
 			type: mongoose.Schema.Types.ObjectId,
-			ref: "Booking", // Reference to the Booking model (if the notification is related to a booking)
-			required: false,
-		},
-		groupTourId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "GroupTour", // Reference to the GroupTour model (if the notification is related to a group tour)
-			required: false,
-		},
-		chatId: {
-			type: mongoose.Schema.Types.ObjectId,
-			ref: "Chat", // Reference to the Chat model (if the notification is related to a chat)
-			required: false,
+			required: true,
+			refPath: "entityType",
 		},
 		message: {
 			type: String,
-			required: true, // The message content of the notification
 		},
 		isRead: {
 			type: Boolean,

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { getNavbarItems } from "../../config/Items";
 import Logout from "../../auth/LogOut";
 import { useMediaQuery } from "@mui/material";
+import NotificationBell from "../pages/common/sidebar/NotificationBell";
 
 const Navbar = ({ user }) => {
 	const navbarItems = getNavbarItems(user);
@@ -11,11 +12,11 @@ const Navbar = ({ user }) => {
 	return (
 		<nav className="bg-gray-800 text-white px-4 py-3 flex justify-between items-center w-full">
 			{/* Logo or Brand Name (optional) */}
-			{!isSmallScreen && (
+			{/* {!isSmallScreen && (
 				<div className="text-xl font-bold text-white">
 					<Link to="/">Brand</Link>
 				</div>
-			)}
+			)} */}
 
 			{/* Left side: Navbar Items */}
 			<div className="flex space-x-6">
@@ -33,8 +34,8 @@ const Navbar = ({ user }) => {
 					</div>
 				))}
 			</div>
-
 			{/* Right side: Logout Button */}
+			<NotificationBell />
 			<div className="flex items-center space-x-4 ml-auto mr-30">
 				<Logout />
 			</div>

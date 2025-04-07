@@ -3,26 +3,42 @@ import axios from "axios";
 import CreateClub from "../../form/CreateClub";
 import { X, Search, Users, Plus } from "lucide-react";
 import { useSelector } from "react-redux";
+import useAllClubs from "../../../hooks/useAllClubs";
+import { useNavigate } from "react-router-dom";
+import { getUser } from "../../../routes/apiConfig";
 
 const ClubManagement = () => {
-	// const [clubs, setClubs] = useState([]);
-
 	const [search, setSearch] = useState("");
 	const [loading, setLoading] = useState(true);
 	const [isCreateClubOpen, setIsCreateClubOpen] = useState(false);
 
-	const { clubs } = useSelector((store) => store.club);
+	useAllClubs();
+	// Add null check for clubs
+	const { clubs = [] } = useSelector((store) => store.club) || {};
 
-	const filteredClubs = clubs.filter((club) =>
-		club?.clubName.toLowerCase().includes(search.toLowerCase())
-	);
+	// Handle null/undefined clubs and add fallback
+	const filteredClubs =
+		clubs?.filter((club) =>
+			club?.clubName?.toLowerCase()?.includes(search?.toLowerCase())
+		) || [];
 
 	useEffect(() => {
-		if (clubs.length > 0) {
+		// Handle undefined clubs
+		if (clubs?.length > 0) {
 			setLoading(false);
+		} else {
+			setLoading(false); // Consider if you want to keep loading until data arrives
 		}
 	}, [clubs]);
-	
+
+	const user = getUser();
+	const navigate = useNavigate();
+	const handleNavigation = () => {
+		navigate(`/faculty/institute/analytics/${user.profileId.college}`);
+	};
+	const handleClubProfileNavigation = (clubid) => {
+		navigate(`/${user.role}/clubs/${clubid}`);
+	};
 	return (
 		<div className="max-w-7xl mx-auto p-6">
 			{/* Header Section */}
@@ -56,42 +72,51 @@ const ClubManagement = () => {
 				</div>
 			</div>
 
-			{/* Loading State */}
-			{loading ? (
-				<div className="flex justify-center items-center h-40">
-					<div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+			{clubs.length === 0 ? (
+				<div className="text-center py-12">
+					<h2 className="text-xl font-semibold text-gray-900">
+						No clubs found
+					</h2>
+					<p className="text-gray-600 mt-2">
+						Get started by creating your first club
+					</p>
 				</div>
 			) : (
-				/* Club Grid */
 				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-					{filteredClubs.map((club) => (
+					{/* Add optional chaining for filteredClubs */}
+					{filteredClubs?.map((club) => (
 						<div
-							key={club._id}
+							key={club?._id}
 							className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow border border-gray-200"
 						>
 							<div className="p-6">
 								<div className="flex items-start justify-between mb-4">
-									<div>
+									<div
+										className="cursor-pointer"
+										onClick={() => {
+											handleClubProfileNavigation(club._id);
+										}}
+									>
 										<h2 className="text-xl font-semibold text-gray-900">
-											{club.clubName}
+											{club?.clubName || "Unnamed Club"}
 										</h2>
 										<p className="text-sm text-gray-600 mt-1">
-											{club.shortName}
+											{club?.shortName || "No short name"}
 										</p>
 									</div>
 									<span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">
-										{club.status}
+										{club?.status || "Inactive"}
 									</span>
 								</div>
 
 								<p className="text-gray-600 text-sm mb-4 line-clamp-3">
-									{club.description}
+									{club?.description || "No description available"}
 								</p>
 
 								<div className="flex items-center justify-between text-sm">
 									<div className="flex items-center gap-2 text-gray-500">
 										<Users className="w-4 h-4" />
-										<span>{club.members?.length || 0} Members</span>
+										<span>{(club?.members || []).length} Members</span>
 									</div>
 									<div className="space-x-3">
 										<button className="text-blue-600 hover:text-blue-800 font-medium">

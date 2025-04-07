@@ -11,12 +11,17 @@ import Discussion from "../components/pages/common/navbar/Discussion";
 import Resources from "../components/pages/common/navbar/Resources";
 import DiscussionDetails from "../components/pages/discuss/DiscussionDetails";
 import CreateOpportunity from "../components/pages/opportunity/CreateOpportunity";
-import ClubProfile from "../components/pages/common/profile/ClubProfile";
+// import ClubProfile from "../components/pages/common/profile/ClubProfile";
 import ProfileWrapper from "../components/pages/common/profile/ProfileWrapper";
 import { useSelector } from "react-redux";
 
 import PostDetails from "../components/post/PostDetails";
-// import UpdateProfile from "../components/pages/common/profile/updateProfile";
+import ClubAnalyticsDashboard from "../components/pages/admin/ClubAnalytics";
+import ClubAnalytics from "../components/pages/admin/ClubListWithAnalytics";
+import CollegeProfilePage from "../components/pages/common/profile/CollegeProfilePage";
+import { UpdateClubProfile } from "../components/pages/common/profile/ClubUpdateProfile";
+import ClubProfile from "../components/pages/common/profile/ClubProfile";
+// import ClubProfile from "../components/pages/common/profile/ClubProfileCard";
 
 const CommonRoutes = () => {
 	const { user } = useSelector((state) => state.auth);
@@ -39,6 +44,9 @@ const CommonRoutes = () => {
 		{ path: "post/:postId", element: <PostDetails /> },
 		// { path: "profile-update/:userId/edit", element: <UpdateProfile /> },
 		{ path: "profile-update/:userId", element: <ProfileWrapper /> },
+		//  <Route path="/analytics/:clubId" element={<ClubAnalytics />} />
+		{ path: "analytics/:clubId", element: <ClubAnalytics /> },
+		{ path: "institute/:collegeId", element: <CollegeProfilePage /> },
 	];
 
 	return (

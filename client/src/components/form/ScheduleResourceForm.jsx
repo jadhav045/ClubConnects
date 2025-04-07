@@ -1,6 +1,8 @@
 import React from "react";
 import { TextField, Button, Grid } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
+import { useState } from "react";
+import { PlusCircle, Trash, Upload, FileText, Link } from "lucide-react";
 
 const ScheduleResourceForm = ({ label, data, setData, fields }) => {
 	const addItem = () => {
@@ -96,6 +98,92 @@ const ScheduleResourceForm = ({ label, data, setData, fields }) => {
 	);
 };
 
-export default ScheduleResourceForm;
+export const ResourceUploader = ({ resources, setFormData }) => {
+	const handleAddResource = () => {
+		setFormData((prev) => ({
+			...prev,
+			resources: [
+				...prev.resources,
+				{ fileType: "", fileUrl: "", description: "" },
+			],
+		}));
+	};
 
-// Let me know if you’d like any adjustments! 🚀
+	const handleChange = (index, field, value) => {
+		setFormData((prev) => {
+			const updatedResources = [...prev.resources];
+			updatedResources[index][field] = value;
+			return { ...prev, resources: updatedResources };
+		});
+	};
+
+	const handleRemove = (index) => {
+		setFormData((prev) => ({
+			...prev,
+			resources: prev.resources.filter((_, i) => i !== index),
+		}));
+	};
+
+	return (
+		<div className="space-y-4 p-4 bg-gray-100 rounded-lg shadow-md">
+			<h2 className="text-lg font-semibold text-gray-700">Upload Resources</h2>
+			{resources.map((resource, index) => (
+				<div
+					key={index}
+					className="flex items-center gap-4 p-3 bg-white rounded-lg shadow-sm"
+				>
+					<select
+						className="p-2 border rounded-lg"
+						value={resource.fileType}
+						onChange={(e) => handleChange(index, "fileType", e.target.value)}
+					>
+						<option value="">Select Type</option>
+						<option value="IMAGE">Image</option>
+						<option value="VIDEO">Video</option>
+						<option value="DOCUMENT">Document</option>
+						<option value="URL">URL</option>
+					</select>
+
+					<input
+						type={resource.fileType === "URL" ? "text" : "file"}
+						className="p-2 border rounded-lg flex-1"
+						placeholder={
+							resource.fileType === "URL" ? "Enter URL" : "Upload File"
+						}
+						onChange={(e) =>
+							handleChange(
+								index,
+								"fileUrl",
+								resource.fileType === "URL" ? e.target.value : e.target.files[0]
+							)
+						}
+					/>
+
+					<input
+						type="text"
+						className="p-2 border rounded-lg flex-1"
+						placeholder="Description (Optional)"
+						value={resource.description}
+						onChange={(e) => handleChange(index, "description", e.target.value)}
+					/>
+
+					<button
+						onClick={() => handleRemove(index)}
+						className="text-red-500 hover:text-red-700"
+					>
+						<Trash size={20} />
+					</button>
+				</div>
+			))}
+
+			<Button
+				onClick={handleAddResource}
+				className="flex items-center gap-2 w-full justify-center"
+			>
+				<PlusCircle /> Add Resource
+			</Button>
+		</div>
+	);
+};
+
+export default ScheduleResourceForm;

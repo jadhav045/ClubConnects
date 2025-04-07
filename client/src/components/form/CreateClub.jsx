@@ -22,6 +22,7 @@ const CreateClub = () => {
 		description: "",
 		collegeId: user?.profileId?.college,
 		presidentId: "",
+		foundingYear: "",
 	});
 
 	const [search, setSearch] = useState(""); // Search input for president
@@ -75,6 +76,7 @@ const CreateClub = () => {
 				motto: "",
 				description: "",
 				presidentId: "",
+				foundingYear: "",
 			});
 			setSelectedPresident(null);
 		} catch (error) {
@@ -155,6 +157,17 @@ const CreateClub = () => {
 								/>
 							</div>
 
+							<div className="md:col-span-2 space-y-1">
+								<LabelWithIcon
+									icon={<Mail className="w-4 h-4" />}
+									text="FoundingYear"
+								/>
+								<InputField
+									name="motto"
+									value={formData.foundingYear}
+									onChange={handleChange}
+								/>
+							</div>
 							<div className="md:col-span-2 space-y-1">
 								<LabelWithIcon
 									icon={<Mail className="w-4 h-4" />}
@@ -248,7 +261,6 @@ const CreateClub = () => {
 					</button>
 				</form>
 			</div>
-			
 		</div>
 	);
 };

@@ -5,6 +5,7 @@ import { StudentAlumni } from "../../models/Roles/StudentAlumni.Model.js";
 import { User } from "../../models/User.Model.js";
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
+import uploadImage from "../../utils/fileUpload.js";
 export const createCollege = async (req, res) => {
 	console.log("We are here");
 	try {
@@ -16,6 +17,8 @@ export const createCollege = async (req, res) => {
 			contactInfo,
 			establishedYear,
 		} = req.body;
+
+		const userId = req.user.id;
 
 		// Validate required fields
 		if (!name || !collegeCode || !address || !contactInfo || !establishedYear) {
@@ -45,7 +48,15 @@ export const createCollege = async (req, res) => {
 		});
 
 		await newCollege.save();
-		res.status(201).json({
+
+		// Update the user’s createdCollege array
+		await User.findByIdAndUpdate(
+			userId,
+			{ $push: { createdCollege: newCollege._id } },
+			{ new: true }
+		);
+
+		return res.status(201).json({
 			message: "College created successfully",
 			newCollege,
 			success: true,
@@ -205,17 +216,13 @@ export const getAllFacultiesList = async (req, res) => {
 export const getAllCollegeList = async (req, res) => {
 	try {
 		const colleges = await College.find()
-			.select("name collegeCode universityAffiliation")
+			.select("name collegeCode universityAffiliation adminDetails")
 			.populate({
-				path: "adminDetails.createdBy",
-				select: "fullName email", // Only fetch fullName and email
+				path: "adminDetails",
+				select: "fullName email",
 			});
 
-		// Handle case when no colleges are found
-		if (!colleges || colleges.length === 0) {
-			return res.status(404).json({ message: "No colleges found." });
-		}
-
+		console.log(colleges);
 		// Return the list of colleges
 		res.status(200).json({
 			message: "College list retrieved successfully",
@@ -272,5 +279,118 @@ export const getAllUsers = async (req, res) => {
 			success: false,
 			error: error.message,
 		});
+	}
+};
+
+export const getCollegeById = async (req, res) => {
+	try {
+		const collegeId = req.params.id;
+		console.log("College ID:", collegeId);
+
+		if (!mongoose.Types.ObjectId.isValid(collegeId)) {
+			return res.status(400).json({ message: "Invalid College ID format" });
+		}
+
+		const college = await College.findById(collegeId);
+		if (!college) {
+			return res.status(404).json({ message: "College not found" });
+		}
+
+		res.json(college);
+	} catch (error) {
+		console.error("Error fetching college:", error);
+		res.status(500).json({ message: "Server error" });
+	}
+};
+// Update full college profile
+// Update route handler
+export const updateCollegeProfile = async (req, res) => {
+	try {
+		console.log("Update payload:", req.body);
+
+		// Validate request body
+		if (!req.body || Object.keys(req.body).length === 0) {
+			return res.status(400).json({ message: "No update data provided" });
+		}
+
+		// Handle nested updates properly
+		const updateOperations = {};
+		for (const [key, value] of Object.entries(req.body)) {
+			if (typeof value === "object" && !Array.isArray(value)) {
+				// Handle nested objects using dot notation
+				for (const [nestedKey, nestedValue] of Object.entries(value)) {
+					updateOperations[`${key}.${nestedKey}`] = nestedValue;
+				}
+			} else {
+				updateOperations[key] = value;
+			}
+		}
+
+		const updatedCollege = await College.findByIdAndUpdate(
+			req.params.id,
+			{ $set: updateOperations },
+			{
+				new: true,
+				runValidators: true,
+				context: "query", // Required for proper validation
+			}
+		).populate("collegeAdmins");
+		// .populate("announcements");
+
+		if (!updatedCollege) {
+			return res.status(404).json({ message: "College not found" });
+		}
+
+		res.json({
+			message: "College updated successfully",
+			college: updatedCollege,
+		});
+	} catch (error) {
+		console.error("Update error:", error);
+
+		// Handle validation errors
+		if (error.name === "ValidationError") {
+			const messages = Object.values(error.errors).map((err) => err.message);
+			return res.status(400).json({ message: messages.join(", ") });
+		}
+
+		// Handle duplicate key errors
+		if (error.code === 11000) {
+			const field = Object.keys(error.keyPattern)[0];
+			return res.status(409).json({
+				message: `${field} already exists and must be unique`,
+			});
+		}
+
+		// Handle CastError (invalid ID format)
+		if (error.name === "CastError") {
+			return res.status(400).json({ message: "Invalid college ID format" });
+		}
+
+		res.status(500).json({
+			message: "Server error during update",
+			error: process.env.NODE_ENV === "development" ? error.message : undefined,
+		});
+	}
+};
+// Upload/update college logo
+export const uploadCollegeLogo = async (req, res) => {
+	try {
+		console.log(req.file);
+
+		if (!req.file) return res.status(400).json({ message: "No logo uploaded" });
+		const logoPath = await uploadImage(req.file);
+
+		const updated = await College.findByIdAndUpdate(
+			req.params.id,
+			{ logo: logoPath.fileUrl },
+			{ new: true }
+		);
+
+		if (!updated) return res.status(404).json({ message: "College not found" });
+
+		res.json({ message: "Logo uploaded successfully", logo: logoPath });
+	} catch (error) {
+		res.status(500).json({ message: error.message });
 	}
 };

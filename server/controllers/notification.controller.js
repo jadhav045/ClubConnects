@@ -1,12 +1,10 @@
 import { io } from "../index.js";
 import { Notification } from "../models/Notifications.js";
+import { User } from "../models/User.Model.js";
 
 // Add a new notification and emit it to all connected clients
-export async function addNotification(data) {
+export async function addNotification(data, userId) {
 	try {
-		console.log("Received notification data: ", data);
-
-		// Save the notification to the database (Mongoose is assumed here)
 		const newNotification = new Notification(data);
 		await newNotification.save(); // Use save() if using Mongoose
 

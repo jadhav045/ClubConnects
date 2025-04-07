@@ -5,9 +5,19 @@ import {
 	logout,
 	getUserProfile,
 	updateUserProfile,
+	getUserNotifications,
+	markAllAsRead,
+	markAsRead,
 } from "../controllers/auth.Controller.js";
 
 import { authMiddleware } from "../middlewares/auth.Middleware.js";
+import upload from "../middlewares/multer.js";
+import { uploadMultipleFiles } from "../utils/uploadController.js";
+import {
+	getClubAnalytics,
+	getClubs,
+} from "../controllers/Roles/clubAnalytics.js";
+// import { uploadMultipleFiles } from "../utils/fileUpload.js";
 
 const router = express.Router();
 
@@ -20,13 +30,21 @@ router.post("/login", login);
 // Logout route
 router.post("/logout", logout);
 
-router.get("/protected", authMiddleware, (req, res) => {
-	res.status(200).json({
-		message: "You have access to this protected route",
-		user: req.user,
-	});
-});
-
 router.get("/:userId", authMiddleware, getUserProfile);
-router.put("/updateProfile", authMiddleware, updateUserProfile);
+
+router.put(
+	"/updateProfile",
+	upload.single("file"),
+	authMiddleware,
+	updateUserProfile
+);
+router.get("/notifications", authMiddleware, getUserNotifications);
+router.put("/read-all", authMiddleware, markAllAsRead);
+router.put("/:notificationId/read", authMiddleware, markAsRead);
+router.post("/upload", upload.array("resources", 10), uploadMultipleFiles);
+
+// Analytics
+router.post("/clubs", getClubs);
+router.get("/faculty/club-analytics/:clubId", getClubAnalytics);
+
 export default router;

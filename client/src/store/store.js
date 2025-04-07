@@ -32,7 +32,7 @@ const staticReducers = {
 	post: postSlice,
 	discuss: discussSlice,
 	opportunities: opportunitiesSlice,
-	club: clubSlice,
+	cl: clubSlice,
 };
 
 // Dynamic Reducer Handling
@@ -64,7 +64,7 @@ export const persistor = persistStore(store);
 
 // Debug store setup
 if (process.env.NODE_ENV === "development") {
-	// console.log("Initial store state:", store.getState());
+	console.log("Initial store state:", store.getState());
 	store.subscribe(() => {
 		// console.log("Updated store state:", store.getState());
 	});

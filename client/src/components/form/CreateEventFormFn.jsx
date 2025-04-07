@@ -11,7 +11,7 @@ export const useCreateEventForm = (onSuccess, onClose) => {
 
 	const { user } = useSelector((store) => store.auth);
 	const organizerId = getPresidentClubId(user);
-
+	// console.log(organizerId);
 	const [formData, setFormData] = useState({
 		title: "",
 		eventType: "",
@@ -19,7 +19,7 @@ export const useCreateEventForm = (onSuccess, onClose) => {
 		detailedDescription: "",
 		eventDateTime: "",
 		location: "",
-		organizer: organizerId,
+		organizer: organizerId || "",
 		registrationDeadline: "",
 		schedule: [],
 		resources: [],
@@ -37,6 +37,7 @@ export const useCreateEventForm = (onSuccess, onClose) => {
 		setFormData((prev) => ({ ...prev, [name]: value }));
 	};
 
+	const { events } = useSelector((store) => store.event);
 	const handleSubmit = async () => {
 		try {
 			console.log("Submitting Form Data:", formData);
@@ -47,7 +48,11 @@ export const useCreateEventForm = (onSuccess, onClose) => {
 			);
 
 			if (res.data.success) {
+				console.log("from backend",res.data.event)
+				dispatch(setEvents([...events, res.data.event]));
 				toast.success("Event created successfully! 🎉");
+			
+				// dispatch(setEvents(...prev, res.data.event));
 
 				setFormData({
 					title: "",
@@ -56,6 +61,7 @@ export const useCreateEventForm = (onSuccess, onClose) => {
 					detailedDescription: "",
 					eventDateTime: "",
 					location: "",
+					organizer: organizerId || "",
 					registrationDeadline: "",
 					schedule: [],
 					resources: [],

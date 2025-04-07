@@ -14,6 +14,11 @@ export const getUser = () => {
 	return user;
 };
 
+export const getRole = () => {
+	const { user } = useSelector((store) => store.auth);
+	return user.role;
+};
+
 export const isPresident = () => {
 	const user = getUser();
 	const isPres = user?.profileId?.clubsJoinded?.some(

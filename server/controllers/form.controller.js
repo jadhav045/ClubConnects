@@ -5,6 +5,7 @@ import { Response } from "../models/Form/Response.js";
 import { Event } from "../models/Postings/Event.Model.js";
 import { User } from "../models/User.Model.js";
 import { Opportunity } from "../models/Postings/Opportunity.js";
+import { authMiddleware } from "../middlewares/auth.Middleware.js";
 
 const router = express.Router();
 
@@ -107,7 +108,7 @@ router.post("/create", async (req, res) => {
 	}
 });
 
-router.post("/submit", async (req, res) => {
+router.post("/submit", authMiddleware, async (req, res) => {
 	try {
 		const { formId, entityType, entityId, userId, answers } = req.body;
 
@@ -156,6 +157,14 @@ router.post("/submit", async (req, res) => {
 			}
 		}
 		await newResponse.save();
+
+		if (entityType === "Event") {
+			const event = await Event.findById(entityId); // Don't wrap `entityId` in {}
+			if (event) {
+				event.participants.push(req.user.id);
+				await event.save(); // Don't forget to save the changes
+			}
+		}
 
 		const message =
 			form.formType === "REGISTRATION"
@@ -291,15 +300,10 @@ const validateFormTypes = (formType) => {
 };
 
 // Export the controller
-export { getEntityForms };
-
-// Update the route
-router.get("/:entityType/:entityId", getEntityForms);
-
-router.get("/:entityType/:entityId/:formType", async (req, res) => {
+const getResposne = async (req, res) => {
 	try {
 		const { entityType, entityId, formType } = req.params;
-		// console.log(req.params);
+		console.log(req.params);
 
 		// Validate entityId as a valid MongoDB ObjectId
 		if (!mongoose.Types.ObjectId.isValid(entityId)) {
@@ -362,11 +366,17 @@ router.get("/:entityType/:entityId/:formType", async (req, res) => {
 			};
 		});
 
-		res.status(200).json(result);
+		return res.status(200).json(result);
 	} catch (error) {
 		console.error("Error fetching responses:", error);
 		res.status(500).json({ message: "Server error", error: error.message });
 	}
-});
+};
+// Update the route
+router.get("/:entityType/:entityId", getEntityForms);
 
+// Response
+router.get("/:entityType/:entityId/:formType", getResposne);
+
+// export { getEntityForms };
 export default router;

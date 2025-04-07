@@ -143,12 +143,6 @@ const EventManagement = () => {
 	const [selectedRegistrationStatus, setSelectedRegistrationStatus] =
 		useState("");
 
-	// Filter events
-	console.log("Events:", events);
-	console.log("President Club ID:", presidentClubId);
-	console.log("Selected Event Type:", selectedEventType);
-	console.log("Selected Registration Status:", selectedRegistrationStatus);
-
 	const filteredEvents = events.filter((event) => {
 		const isOrganizer = event?.organizer._id === presidentClubId;
 		// console.log("Event Organizer",  event?.organizer._id)

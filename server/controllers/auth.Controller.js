@@ -56,6 +56,7 @@ export const register = async (req, res) => {
 export const login = async (req, res) => {
 	const { emailOrPrn, password } = req.body;
 
+	console.log("Data at Login", req.body);
 	try {
 		const user = await User.findOne({
 			$or: [{ email: emailOrPrn }, { prn: emailOrPrn }],
@@ -75,13 +76,14 @@ export const login = async (req, res) => {
 		if (!isPasswordValid) {
 			return res.status(401).json({ message: "Invalid credentials" });
 		}
+		console.log(user);
 
 		const payload = {
-			id: user._id,
-			role: user.role,
-			profileId: user.profileId._id,
+			id: user?._id,
+			role: user?.role,
+			profileId: user?.profileId?._id,
 		};
-
+		console.log(payload);
 		if (user.role === "Faculty" && user.profileId?.college) {
 			payload.collegeId = user.profileId.college;
 		}
@@ -103,6 +105,7 @@ export const login = async (req, res) => {
 			.status(200)
 			.json({ message: "Login successful", user, token, success: true });
 	} catch (error) {
+		console.log("error", error.message);
 		res.status(500).json({ message: "Login failed", error: error.message });
 	}
 };
@@ -120,6 +123,9 @@ export const getUserProfile = async (req, res) => {
 				.json({ success: false, message: "User not found" });
 		}
 
+		if (user.role == "Admin") {
+			return res.json({ success: true, user });
+		}
 		// Common population for all users
 		const populateOptions = [
 			{ path: "profileId" },
@@ -189,13 +195,16 @@ export const logout = (req, res) => {
 };
 import mongoose from "mongoose";
 import { Club } from "../models/Roles/Club.Model.js";
+import { Notification } from "../models/Notifications.js";
+import uploadImage from "../utils/fileUpload.js";
 
 export const updateUserProfile = async (req, res) => {
 	try {
 		const userId = req.user.id; // Get authenticated user ID
-		const updateData = req.body;
+		let updateData = req.body;
 
 		console.log("At Update", updateData);
+		console.log("File", req.file);
 		// Ensure `profileId` is valid and exists
 		if (
 			updateData.profileId &&
@@ -203,7 +212,20 @@ export const updateUserProfile = async (req, res) => {
 		) {
 			return res.status(400).json({ message: "Invalid profileId" });
 		}
+		if (req.file) {
+			const profilePicture = await uploadImage(req.file);
+			console.log("profile", profilePicture?.fileUrl);
+			updateData = {
+				...req.body,
+				profilePicture: profilePicture?.fileUrl, // Ensure only fileUrl is stored
+			};
+		} else {
+			updateData = {
+				...req.body,
+			};
+		}
 
+		// console.log()
 		// Update User Profile
 		const updatedUser = await User.findByIdAndUpdate(
 			userId,
@@ -214,7 +236,7 @@ export const updateUserProfile = async (req, res) => {
 		if (!updatedUser) {
 			return res.status(404).json({ message: "User not found" });
 		}
-		console.log("Updated Yser", updatedUser);
+		console.log("Updated Yser", updatedUser.profilePicture);
 
 		return res.status(200).json({
 			message: "Profile updated successfully",
@@ -223,5 +245,88 @@ export const updateUserProfile = async (req, res) => {
 	} catch (error) {
 		console.error("Error updating profile:", error);
 		res.status(500).json({ message: "Server error", error: error.message });
+	}
+};
+
+// Notifications
+export const getUserNotifications = async (req, res) => {
+	try {
+		console.log("Fetching notifications...");
+
+		if (!req.user || !req.user.id) {
+			return res
+				.status(401)
+				.json({ error: "Unauthorized. User ID is missing." });
+		}
+
+		const userId = req.user.id;
+
+		const notifications = await Notification.find({ to: userId })
+			.sort({ createdAt: -1 })
+			.lean();
+
+		if (!notifications.length) {
+			return res.status(404).json({ message: "No notifications found." });
+		}
+
+		res.json(notifications);
+	} catch (error) {
+		console.error("Error fetching notifications:", error);
+		res.status(500).json({
+			error: "Failed to fetch notifications. Please try again later.",
+		});
+	}
+};
+export const markAsRead = async (req, res) => {
+	try {
+		const { notificationId } = req.params;
+
+		if (!notificationId) {
+			return res.status(400).json({ error: "Notification ID is required." });
+		}
+
+		const updatedNotification = await Notification.findByIdAndUpdate(
+			notificationId,
+			{ isRead: true },
+			{ new: true }
+		);
+
+		if (!updatedNotification) {
+			return res.status(404).json({ error: "Notification not found." });
+		}
+
+		res.json({ success: true, notification: updatedNotification });
+	} catch (error) {
+		console.error("Error marking notification as read:", error);
+		res.status(500).json({ error: "Failed to update notification." });
+	}
+};
+export const markAllAsRead = async (req, res) => {
+	try {
+		if (!req.user || !req.user.id) {
+			return res
+				.status(401)
+				.json({ error: "Unauthorized. User ID is missing." });
+		}
+
+		const userId = req.user.id;
+
+		const result = await Notification.updateMany(
+			{ to: userId, isRead: false },
+			{ isRead: true }
+		);
+
+		if (result.modifiedCount === 0) {
+			return res
+				.status(404)
+				.json({ message: "No unread notifications found." });
+		}
+
+		res.json({ success: true, message: "All notifications marked as read." });
+	} catch (error) {
+		console.error("Error marking all notifications as read:", error);
+		res
+			.status(500)
+			.json({ error: "Internal Server Error. Please try again later." });
 	}
 };

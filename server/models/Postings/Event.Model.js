@@ -15,9 +15,6 @@ const EventSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		detailedDescription: {
-			type: String,
-		},
 		eventDateTime: {
 			type: Date,
 			required: true,
@@ -26,17 +23,21 @@ const EventSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		detailedDescription: {
+			type: String,
+		},
 		schedule: [
 			{
 				time: String,
 				activity: String,
 			},
 		],
+
 		resources: [
 			{
 				fileType: {
 					type: String,
-					// enum: ["IMAGE", "VIDEO", "DOCUMENT", "URL"], // Allowed file types
+					enum: ["IMAGE", "VIDEO", "DOCUMENT", "URL"], // Allowed file types
 					required: true,
 				},
 				fileUrl: { type: String, required: true }, // The file or URL link
@@ -49,6 +50,7 @@ const EventSchema = new mongoose.Schema(
 			ref: "Club",
 			required: true,
 		},
+
 		participants: {
 			type: [mongoose.Schema.Types.ObjectId],
 			ref: "User",

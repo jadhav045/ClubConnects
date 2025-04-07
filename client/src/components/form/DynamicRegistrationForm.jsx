@@ -25,6 +25,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { setAuthUser } from "../../store/slice/authSlice";
+import { getToken } from "../../routes/apiConfig";
 
 // Wrapper Component for Questions
 const QuestionWrapper = ({ children, required, label }) => (
@@ -203,14 +204,19 @@ const useFormSubmission = () => {
 		userId
 	) => {
 		try {
+			const token = getToken();
 			setSubmitting(true);
-			const res = await axios.post(`http://localhost:3002/form/submit`, {
-				formId: formData._id,
-				entityType, // Remove hardcoded "Event"
-				entityId,
-				userId,
-				answers,
-			});
+			const res = await axios.post(
+				`http://localhost:3002/form/submit`,
+				{
+					formId: formData._id,
+					entityType, // Remove hardcoded "Event"
+					entityId,
+					userId,
+					answers,
+				},
+				{ headers: { Authorization: `Bearer ${token}` } }
+			);
 
 			// After successful registration
 			if (res.data.success) {

@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 import { toast } from "react-toastify";
 import FormLayout from "../common/FormComponent";
 
-const AddCollege = ({ onClose }) => {
+const AddCollege = ({ onClose, setColleges }) => {
 	const [collegeData, setCollegeData] = useState({
 		name: "",
 		collegeCode: "",
@@ -35,8 +35,11 @@ const AddCollege = ({ onClose }) => {
 				}
 			);
 
-			toast.success("College created successfully");
-			onClose(); // Close modal on success
+			if (response.data.success) {
+				setColleges((prev) => [...prev, response.data.newCollege]); // ✅ Fix
+				toast.success("College created successfully");
+				onClose(); // close the modal
+			}
 		} catch (error) {
 			console.error("Error:", error.response?.data || error);
 			toast.error(error.response?.data.message || "Failed to create college");
@@ -44,7 +47,7 @@ const AddCollege = ({ onClose }) => {
 	};
 
 	return (
-		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+		<div className="fixed inset-0 bg-opacity-50 flex items-center justify-center p-4 z-50">
 			<div className="bg-white w-full max-w-2xl rounded-xl shadow-2xl relative mx-2">
 				{/* Header Section */}
 				<div className="p-6 border-b border-gray-200 flex items-center justify-between">

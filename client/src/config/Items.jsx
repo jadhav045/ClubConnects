@@ -47,6 +47,8 @@ export const getSidebarItems = () => {
 		faculty: [
 			{ name: "Club Management", href: "/faculty/manage/clubs", icon: "🏫" },
 			{ name: "Manage Events", href: "/faculty/manage/events", icon: "📅" },
+			{ name: "Reports", href: "/faculty/reports", icon: "📊" },
+			{ name: "Instittue", href: "/faculty/institute", icon: "📘" },
 		],
 		alumni: [
 			{ name: "Alumni Network", href: "/alumni/network", icon: "🤝" },

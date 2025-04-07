@@ -5,10 +5,7 @@ import {
 	createPost,
 	getAllPosts,
 	savePostFn,
-	createPoll,
-	replyPoll,
 	getPost,
-	// getPostById,
 } from "../../controllers/Postings/post.controller.js";
 import { authMiddleware } from "../../middlewares/auth.Middleware.js";
 import {
@@ -18,15 +15,12 @@ import {
 	addReply,
 	deleteReplyComment,
 } from "../../controllers/Postings/post.Functions.controller.js";
+import upload from "../../middlewares/multer.js";
 const router = express();
 // Create
-router.post("/", authMiddleware, createPost);
-router.post("/poll", authMiddleware, createPoll);
-router.put("/replypoll", authMiddleware, replyPoll);
-// router.get("/:id", authMiddleware, getPostById);
-// Read
+router.post("/", upload.single("attachments"), authMiddleware, createPost);
+
 router.get("/", getAllPosts);
-// router.get("/:id", authMiddleware, getPostById);
 
 // Update
 router.put("/:id", authMiddleware, updatePost);

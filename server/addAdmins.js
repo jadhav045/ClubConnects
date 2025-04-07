@@ -5,9 +5,8 @@ import bcrypt from "bcryptjs";
 import { Event } from "./models/Postings/Event.Model.js";
 dotenv.config({});
 
-console.log("mongodb+srv://mrshaktiman01:T3rs4Nn07F473S5v@cluster0.t1hi4.mongodb.net/");
 mongoose
-	.connect("mongodb+srv://mrshaktiman01:T3rs4Nn07F473S5v@cluster0.t1hi4.mongodb.net/")
+	.connect("mongodb+srv://mrshaktiman01:dqMMTEbSiUXPFyW6@cluster0.6svacrz.mongodb.net/")
 	.then(() => console.log("MongoDB Connected"))
 	.catch((err) => console.log("DB Connection Error:", err));
 
@@ -63,47 +62,4 @@ const addAdminFn = async () => {
 	}
 };
 
-
-// Define Event Model (If you already have the model, import it instead)
-
-const removeRequestUniqueId = async () => {
-    try {
-        // await connectDB();
-
-        const result = await Event.updateMany(
-            { requestUniqueId: { $exists: true } }, // Find all documents with requestUniqueId
-            { $unset: { requestUniqueId: 1 } } // Remove the field
-        );
-
-        console.log(`✅ Removed requestUniqueId from ${result.modifiedCount} events.`);
-    } catch (error) {
-        console.error("❌ Error removing requestUniqueId:", error);
-    } finally {
-        mongoose.connection.close();
-    }
-};
-
-const removeUniqueIndex = async () => {
-    try {
-        // await mongoose.connect(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
-        // console.log("✅ MongoDB Connected");
-
-        const Event = mongoose.connection.collection("events");
-
-        // Drop the unique index on requestUniqueId
-        await Event.dropIndex("requestUniqueId_1");
-
-        console.log("✅ Unique index on requestUniqueId removed.");
-    } catch (error) {
-        console.error("❌ Error removing unique index:", error);
-    } finally {
-        mongoose.connection.close();
-        console.log("🔌 MongoDB Connection Closed");
-    }
-};
-
-removeUniqueIndex();
-
-// removeRequestUniqueId();
-
-// addAdminFn();
+addAdminFn()

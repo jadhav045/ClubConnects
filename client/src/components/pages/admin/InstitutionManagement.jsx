@@ -1,8 +1,5 @@
 import { useState } from "react";
-import AddCollege from "../../form/AddCollege";
-import AddFaculty from "../../form/AddFaculty";
 
-import FacultyList from "../../form/FacultyList";
 import CollegeList from "../../form/CollegeList";
 // import AddFacultyForm from "../../form/AddFacultyForm";
 const InstitutionManagement = () => {

@@ -160,9 +160,25 @@ export const assignRoleFn = async (req, res) => {
 
 export const getAllClubs = async (req, res) => {
 	try {
-		const clubs = await Club.find();
-		return res.json({ clubs, message: "Club Fetch successfully" });
+		console.log("Backend of Clubs");
+		let clubs = await Club.find();
+		clubs = await Club.populate(clubs, {
+			path: "members.userId",
+			select: "_id email fullName",
+		});
+
+		console.log("clubs", clubs.members);
+		return res.status(200).json({
+			success: true,
+			message: "Clubs fetched successfully",
+			clubs,
+		});
 	} catch (error) {
-		return res.json({ success: false, message: "Error while Fetching CLubs" });
+		console.error("Error fetching clubs:", error);
+		return res.status(500).json({
+			success: false,
+			message: "Internal Server Error",
+			error: error.message,
+		});
 	}
 };

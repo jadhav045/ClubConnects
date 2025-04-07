@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import { removePost } from "../../store/slice/postSlice";
 
-
 export const usePostCard = (post, currentUser, onPostDeleted) => {
 	const { posts } = useSelector((store) => store.post);
 
@@ -28,8 +27,6 @@ export const usePostCard = (post, currentUser, onPostDeleted) => {
 			setLikes(post.likes.length);
 		}
 	}, [post?.likes, currentUser?._id]);
-
-
 
 	// Toggle Like with API call and socket
 	const handleLike = async () => {

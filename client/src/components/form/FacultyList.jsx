@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
-
+import { getUser } from "../../routes/apiConfig";
+import { useNavigate } from "react-router-dom";
 const FacultyList = ({ collegeId }) => {
 	const [faculties, setFaculties] = useState([]);
 	const [loading, setLoading] = useState(true);
@@ -29,6 +30,11 @@ const FacultyList = ({ collegeId }) => {
 		fetchFaculties();
 	}, []);
 
+	const navigate = useNavigate();
+	const user = getUser();
+	const handleNavigate = (userid) => {
+		navigate(`/${user.role}/profile/${userid}`);
+	};
 	if (loading)
 		return (
 			<div className="flex flex-col items-center justify-center h-40 space-y-3">
@@ -54,13 +60,35 @@ const FacultyList = ({ collegeId }) => {
 								<div className="p-4 bg-gray-50 flex justify-between items-start">
 									<div className="flex-1">
 										<div className="flex items-center gap-3">
-											<h3 className="text-lg font-semibold text-gray-800">
-												{faculty.fullName}
-											</h3>
+											<div
+												className="cursor-pointer flex items-center gap-2"
+												onClick={() => handleNavigate(faculty._id)}
+											>
+												{/* Avatar */}
+												<div className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-300 text-white font-semibold text-xl overflow-hidden cursor-pointer">
+													{faculty.profilePicture ? (
+														<img
+															src={faculty.profilePicture}
+															alt={faculty.fullName}
+															className="w-full h-full object-cover"
+														/>
+													) : (
+														<span>
+															{faculty.fullName.charAt(0).toUpperCase()}
+														</span>
+													)}
+												</div>
+
+												{/* Full Name (Vertically Centered) */}
+												<h3 className="text-lg font-semibold text-gray-800">
+													{faculty.fullName}
+												</h3>
+											</div>
 											<span className="inline-block px-2 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
 												{faculty.profileId?.subRole || "Faculty"}
 											</span>
 										</div>
+
 										<div className="mt-2 space-y-1">
 											<p className="text-sm text-gray-600">
 												<span className="font-medium">Email:</span>{" "}

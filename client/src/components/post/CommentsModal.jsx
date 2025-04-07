@@ -8,7 +8,8 @@ import {
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { getUser } from "../../routes/apiConfig";
-
+import { Avatar } from "@mui/material";
+//
 const CommentsModal = ({
 	isOpen,
 	onClose,
@@ -58,14 +59,16 @@ const CommentsModal = ({
 							className="mb-4 group"
 						>
 							<div className="flex items-start gap-3">
-								<img
+								<Avatar
+									// sx={{ width: 32, height: 32, cursor: "pointer" }}
 									src={comment.userId?.profilePicture}
-									alt="Profile"
-									className="w-8 h-8 rounded-full object-cover cursor-pointer"
 									onClick={() =>
 										handleNavigate(comment.userId?._id, comment.userId.role)
 									}
-								/>
+								>
+									{comment.userId?.fullName?.charAt(0).toUpperCase()}
+								</Avatar>
+
 								<div className="flex-1">
 									<div className="flex items-baseline gap-2">
 										<span className="font-semibold text-sm">
@@ -101,11 +104,13 @@ const CommentsModal = ({
 									{/* Reply Input */}
 									{replyingTo === comment._id && (
 										<div className="mt-3 ml-4 flex items-center gap-2">
-											<img
+											<Avatar
 												src={currentUser?.profilePicture}
 												alt="Profile"
-												className="w-6 h-6 rounded-full object-cover"
-											/>
+												sx={{ width: 24, height: 24 }}
+											>
+												{currentUser?.fullName?.charAt(0).toUpperCase()}
+											</Avatar>
 											<div className="flex-1 relative">
 												<input
 													type="text"
@@ -133,14 +138,16 @@ const CommentsModal = ({
 													key={reply._id}
 													className="flex items-start gap-3"
 												>
-													<img
+													<Avatar
 														src={reply.userId?.profilePicture}
 														alt="Profile"
-														className="w-6 h-6 rounded-full object-cover cursor-pointer"
+														sx={{ width: 24, height: 24, cursor: "pointer" }}
 														onClick={() =>
 															handleNavigate(reply.userId, reply.userId.role)
 														}
-													/>
+													>
+														{reply.userId?.fullName?.charAt(0).toUpperCase()}
+													</Avatar>
 													<div className="flex-1">
 														<div className="flex items-baseline gap-2">
 															<span

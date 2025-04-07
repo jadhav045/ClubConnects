@@ -3,6 +3,7 @@ import { FaReply, FaTrash, FaRegPaperPlane, FaEllipsisV } from "react-icons/fa";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { Avatar } from "@mui/material";
 
 const ActionMenu = ({ isVisible, onDelete, isAuthor }) => {
 	const menuRef = useRef();
@@ -129,11 +130,13 @@ const CommentSection = ({ discussionId, comments, currentUser }) => {
 		<div className="mt-4 space-y-4">
 			{/* Add Comment Section */}
 			<div className="flex items-start space-x-3">
-				<img
+				<Avatar
 					src={currentUser?.profilePicture}
 					alt="Profile"
-					className="w-8 h-8 rounded-full object-cover"
-				/>
+					sx={{ width: 32, height: 32, cursor: "pointer" }}
+				>
+					{currentUser?.fullName?.charAt(0).toUpperCase()}
+				</Avatar>
 				<div className="flex-1 relative">
 					<textarea
 						value={newComment}

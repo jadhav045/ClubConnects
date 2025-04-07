@@ -3,78 +3,8 @@ import { Event } from "../../models/Postings/Event.Model.js";
 import { Club } from "../../models/Roles/Club.Model.js";
 import { User } from "../../models/User.Model.js";
 import { Poll } from "../../models/Postings/Poll.Model.js";
-
-export const createPoll = async (req, res) => {
-	try {
-		const {
-			pollQuestion,
-			text,
-			pollOptions,
-			endDate,
-			isPublic,
-			allowMultipleVotes,
-			clubId,
-		} = req.body;
-
-		// Validation
-		if (!pollQuestion || !pollOptions?.length || pollOptions.length < 2) {
-			return res.status(400).json({
-				message: "Poll question and at least two options are required",
-			});
-		}
-
-		if (!endDate) {
-			return res.status(400).json({
-				message: "End date is required",
-			});
-		}
-
-		// Create new poll
-		const newPoll = new Poll({
-			authorId: req.user.id,
-			authorRole: req.user.role,
-			clubId: clubId || null,
-			pollQuestion,
-			text: text || "",
-			pollOptions: pollOptions.map((option) => ({
-				optionText: option.optionText,
-				votes: 0,
-			})),
-			endDate,
-			isPublic: isPublic ?? true,
-			allowMultipleVotes: allowMultipleVotes ?? false,
-			totalVotes: 0,
-		});
-
-		const savedPoll = await newPoll.save();
-
-		// Update club or user references
-		if (clubId) {
-			await Club.findByIdAndUpdate(clubId, {
-				$push: { polls: savedPoll._id },
-			});
-		} else {
-			await User.findByIdAndUpdate(req.user.id, {
-				$push: { polls: savedPoll._id },
-			});
-		}
-
-		res.status(201).json({
-			message: "Poll created successfully",
-			poll: savedPoll,
-		});
-	} catch (err) {
-		console.error("Error creating poll:", err);
-		res.status(500).json({
-			message: "Server error",
-			error: err.message,
-		});
-	}
-};
-
+import uploadImage from "../../utils/fileUpload.js";
 export const createPost = async (req, res) => {
-	console.log("Request received:", req.body);
-
 	try {
 		const {
 			text,
@@ -83,34 +13,9 @@ export const createPost = async (req, res) => {
 			clubId,
 			eventId,
 			isPublic,
-			mentions,
-			attachments,
+			mentions
 		} = req.body;
 
-		// **1. Basic Validation**
-		if (!text || typeof text !== "string") {
-			return res
-				.status(400)
-				.json({ message: "Text content is required and must be a string." });
-		}
-
-		if (category && typeof category !== "string") {
-			return res.status(400).json({ message: "Category must be a string." });
-		}
-
-		if (tags && !Array.isArray(tags)) {
-			return res.status(400).json({ message: "Tags must be an array." });
-		}
-
-		if (mentions && !Array.isArray(mentions)) {
-			return res.status(400).json({ message: "Mentions must be an array." });
-		}
-
-		if (attachments && !Array.isArray(attachments)) {
-			return res.status(400).json({ message: "Attachments must be an array." });
-		}
-
-		// **2. Check if the Club exists (if provided)**
 		let clubExists = null;
 		if (clubId) {
 			try {
@@ -144,7 +49,17 @@ export const createPost = async (req, res) => {
 			}
 		}
 
+		const attachments = {
+			fileUrl:"",
+			fileType: "jpg",
+		};
 		// **4. Create a New Post**
+		if (req.file) {
+			const url = await uploadImage(req.file);
+			console.log("profile", url?.fileUrl);
+			attachments.fileUrl = url?.fileUrl;
+		}
+
 		let newPost;
 		try {
 			newPost = new Post({
@@ -152,13 +67,14 @@ export const createPost = async (req, res) => {
 				authorRole: req.user.role,
 				text,
 				category,
-				tags,
 				clubId: clubId || null,
 				eventId: eventId || null,
 				isPublic: isPublic ?? true, // Default to true if not provided
 				mentions,
 				attachments: attachments || [],
 			});
+			await newPost.save();
+			console.log("New ost ", newPost.attachments);
 		} catch (error) {
 			console.error("Error creating post object:", error);
 			return res
@@ -282,6 +198,7 @@ export const getAllPosts = async (req, res) => {
 			})
 			.sort({ createdAt: -1 });
 
+		// console.log(posts);
 		return res.json({
 			message: "Posts fetched successfully",
 			success: true,
@@ -487,7 +404,7 @@ export const savePostFn = async (req, res) => {
 export const getPost = async (req, res) => {
 	try {
 		const { postId } = req.params;
-		console.log("postId", postId);
+		// console.log("postId", postId);
 		const post = await Post.findById(postId);
 		if (!post) {
 			return res.status(404).json({ message: "Post not found" });

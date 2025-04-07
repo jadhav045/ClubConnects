@@ -1,12 +1,14 @@
+// import React from "react";
+import { TextField, InputAdornment } from "@mui/material";
+
 import React from "react";
 import {
-	TextField,
-	Button,
 	Grid,
 	Typography,
 	Paper,
-	InputAdornment,
+	Button,
 	useTheme,
+	
 } from "@mui/material";
 import {
 	Event as EventIcon,
@@ -16,15 +18,55 @@ import {
 	LocationOn as LocationIcon,
 	Category as CategoryIcon,
 } from "@mui/icons-material";
+
+import DialogComponent from "../common/DialogComponent";
 import ScheduleResourceForm from "./ScheduleResourceForm";
 import { useCreateEventForm } from "./CreateEventFormFn";
-import DialogComponent from "../common/DialogComponent";
-// import DialogComponent from "./DialogComponent";
+// import FormField from "../common/FormField";
+
+const FormField = ({
+	label,
+	name,
+	value,
+	onChange,
+	icon,
+	type = "text",
+	required = false,
+	multiline = false,
+	rows = 1,
+}) => {
+	return (
+		<TextField
+			fullWidth
+			label={label}
+			name={name}
+			value={value}
+			onChange={onChange}
+			type={type}
+			required={required}
+			multiline={multiline}
+			rows={rows}
+			variant="outlined"
+			margin="normal"
+			InputProps={{
+				startAdornment: icon && (
+					<InputAdornment position="start">{icon}</InputAdornment>
+				),
+			}}
+			sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
+		/>
+	);
+};
 
 const CreateEventForm = ({ open, onClose, onSuccess }) => {
 	const theme = useTheme();
 	const { formData, handleChange, handleSubmit, setFormData } =
 		useCreateEventForm(onSuccess, onClose);
+
+	const handleFormSubmit = () => {
+		const success = handleSubmit();
+		if (success) onClose(); // Only close on success
+	};
 
 	return (
 		<DialogComponent
@@ -34,7 +76,7 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 			actions={
 				<>
 					<Button
-						variant="contained"
+						variant="outlined"
 						color="secondary"
 						onClick={onClose}
 					>
@@ -43,10 +85,7 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 					<Button
 						variant="contained"
 						color="primary"
-						onClick={() => {
-							handleSubmit();
-							onClose();
-						}}
+						onClick={handleFormSubmit}
 					>
 						Create Event
 					</Button>
@@ -72,8 +111,8 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 							variant="h6"
 							sx={{ mb: 3, color: theme.palette.primary.main }}
 						>
-							<CategoryIcon sx={{ mr: 1, verticalAlign: "bottom" }} /> Event
-							Details
+							<CategoryIcon sx={{ mr: 1, verticalAlign: "bottom" }} />
+							Event Details
 						</Typography>
 
 						{[
@@ -110,25 +149,11 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 								required: true,
 							},
 						].map((field) => (
-							<TextField
+							<FormField
 								key={field.name}
-								fullWidth
-								label={field.label}
-								name={field.name}
+								{...field}
 								value={formData[field.name]}
 								onChange={handleChange}
-								variant="outlined"
-								margin="normal"
-								InputProps={{
-									startAdornment: (
-										<InputAdornment position="start">
-											{field.icon}
-										</InputAdornment>
-									),
-								}}
-								type={field.type || "text"}
-								required={field.required}
-								sx={{ "& .MuiOutlinedInput-root": { borderRadius: 2 } }}
 							/>
 						))}
 					</Paper>
@@ -148,37 +173,33 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 							variant="h6"
 							sx={{ mb: 3, color: theme.palette.primary.main }}
 						>
-							<DescriptionIcon sx={{ mr: 1, verticalAlign: "bottom" }} />{" "}
+							<DescriptionIcon sx={{ mr: 1, verticalAlign: "bottom" }} />
 							Descriptions
 						</Typography>
 
-						<TextField
+						<FormField
 							label="Short Description"
 							name="description"
 							value={formData.description}
 							onChange={handleChange}
-							fullWidth
 							multiline
-							rows={4}
-							variant="outlined"
-							margin="normal"
+							rows={3}
+							icon={<DescriptionIcon />}
 						/>
 
-						<TextField
+						<FormField
 							label="Detailed Description"
 							name="detailedDescription"
 							value={formData.detailedDescription}
 							onChange={handleChange}
-							fullWidth
 							multiline
-							rows={4}
-							variant="outlined"
-							margin="normal"
+							rows={6}
+							icon={<DescriptionIcon />}
 						/>
 					</Paper>
 				</Grid>
 
-				{/* Event Schedule */}
+				{/* Schedule Section */}
 				<Grid
 					item
 					xs={12}
@@ -191,9 +212,10 @@ const CreateEventForm = ({ open, onClose, onSuccess }) => {
 							variant="h6"
 							sx={{ mb: 3, color: theme.palette.secondary.main }}
 						>
-							<ScheduleIcon sx={{ mr: 1, verticalAlign: "bottom" }} /> Event
-							Schedule
+							<ScheduleIcon sx={{ mr: 1, verticalAlign: "bottom" }} />
+							Event Schedule
 						</Typography>
+
 						<ScheduleResourceForm
 							label="Schedule"
 							data={formData.schedule}

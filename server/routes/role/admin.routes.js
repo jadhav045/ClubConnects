@@ -10,7 +10,11 @@ import {
 	getAllCollegeList,
 	getAllFacultiesList,
 	getAllUsers,
+	getCollegeById,
+	updateCollegeProfile,
+	uploadCollegeLogo,
 } from "../../controllers/Roles/admin.controller.js";
+import upload from "../../middlewares/multer.js";
 
 const router = express.Router();
 
@@ -43,5 +47,11 @@ router.get(
 	getAllCollegeList
 );
 
-router.get("/users/list",  getAllUsers);
+router.get("/users/list", getAllUsers);
+
+router.get("/:id", getCollegeById);
+
+router.put("/:id/update", updateCollegeProfile);
+
+router.put("/:id/logo", upload.single("logo"), uploadCollegeLogo);
 export default router;

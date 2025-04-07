@@ -1,5 +1,6 @@
 import { Club } from "../../models/Roles/Club.Model.js";
 import { Event } from "../../models/Postings/Event.Model.js";
+import { addNotification } from "../notification.controller.js";
 
 export const createEvent = async (req, res) => {
 	try {
@@ -11,7 +12,7 @@ export const createEvent = async (req, res) => {
 			eventDateTime,
 			location,
 			schedule,
-			resources,
+			// resources,
 			organizer,
 			registrationDeadline,
 			tags,
@@ -72,7 +73,7 @@ export const createEvent = async (req, res) => {
 			eventDateTime,
 			location,
 			schedule,
-			resources,
+			// resources,
 			organizer,
 			registrationDeadline,
 			tags,
@@ -83,6 +84,8 @@ export const createEvent = async (req, res) => {
 		// Save to database
 		await newEvent.save();
 
+		club.events.push(newEvent._id);
+		await club.save(); // Save the updated club document
 		console.log("D");
 		return res.status(201).json({
 			message: "Event created successfully",
@@ -99,7 +102,6 @@ export const createEvent = async (req, res) => {
 		});
 	}
 };
-
 export const getAllEvents = async (req, res) => {
 	try {
 		const events = await Event.find()
@@ -111,7 +113,36 @@ export const getAllEvents = async (req, res) => {
 			count: events.length,
 			events,
 		});
+	} catch (error) {}
+};
+export const sendReminder = async (req, res) => {
+	try {
+		const { eventId } = req.params;
+		const { message } = req.body;
+
+		const event = await Event.findById(eventId);
+		if (!event) {
+			return res.status(404).json({ message: "Event not found" });
+		}
+
+		const data = {
+			type: "TRIP_UPDATE",
+			from: event.organizer, // or req.user.id if you're using auth
+			to: event.participants, // already an array
+			entityType: "Event",
+			entityId: event._id,
+			message,
+		};
+
+		console.log("Sending reminder to participants...");
+		await addNotification(data, event.organizer); // or req.user.id
+
+		return res.json({
+			message: "Reminder sent",
+			participants: event.participants,
+		});
 	} catch (error) {
+		console.log(error.message);
 		res.status(500).json({
 			success: false,
 			message: "Server error",

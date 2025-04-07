@@ -171,6 +171,10 @@ const OpportunityCard = ({ opportunity }) => {
 		handleClose();
 	};
 
+	const studentsId =
+		opportunity?.rounds?.[opportunity.currentRound]?.studentsId || [];
+	const isStudentPresent = studentsId.includes(user._id.toString());
+
 	const getStatusColor = (type) => {
 		const colors = {
 			INTERNSHIP: "primary",
@@ -201,6 +205,12 @@ const OpportunityCard = ({ opportunity }) => {
 	};
 
 	const handleApplyClick = () => {
+		// const studentsId =
+		// 	opportunity?.rounds?.[opportunity.currentRound]?.studentsId || [];
+		// const isStudentPresent = studentsId.includes(user._id.toString());
+		console.log(opportunity);
+		console.log(user._id);
+		console.log(isStudentPresent);
 		if (!user) {
 			// Handle not logged in state
 			return;
@@ -476,7 +486,7 @@ const OpportunityCard = ({ opportunity }) => {
 						disabled={!isOpportunityOpen() || isRegistered}
 						onClick={handleApplyClick}
 					>
-						{isRegistered
+						{isStudentPresent
 							? "Already Applied"
 							: isOpportunityOpen()
 							? "Apply Now"

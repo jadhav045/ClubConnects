@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 
 export const authMiddleware = (req, res, next) => {
+	// console.log("At Middle");
 	const token =
 		req.cookies.token || req.headers["authorization"]?.split(" ")[1];
 	// console.log("Received Token:", token);

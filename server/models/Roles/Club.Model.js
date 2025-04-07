@@ -19,7 +19,6 @@ const ClubSchema = new mongoose.Schema(
 		motto: { type: String, trim: true },
 		description: { type: String, trim: true },
 		logo: { type: String },
-		profilePicture: { type: String },
 
 		socialLinks: {
 			linkedIn: { type: String, default: "" },
@@ -111,12 +110,12 @@ const ClubSchema = new mongoose.Schema(
 			index: true,
 		},
 
-		requests: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Request",
-			},
-		],
+		// requests: [
+		// 	{
+		// 		type: mongoose.Schema.Types.ObjectId,
+		// 		ref: "Request",
+		// 	},
+		// ],
 	},
 	{ timestamps: true }
 );

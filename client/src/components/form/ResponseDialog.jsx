@@ -49,6 +49,7 @@ const ResponseDialog = ({
 	loading,
 	error,
 	onFilteredUsers,
+	entityType,
 	onMoveToNextRound, // Add this prop
 }) => {
 	const [filters, setFilters] = useState([]);
@@ -190,16 +191,20 @@ const ResponseDialog = ({
 		});
 
 		setFilteredResponses(matchingResponses);
-		setSelectedUsers(matchingResponses.map(response => response.user.userId));
-		onFilteredUsers?.(matchingResponses.map(response => response.user.userId));
+		setSelectedUsers(matchingResponses.map((response) => response.user.userId));
+		onFilteredUsers?.(
+			matchingResponses.map((response) => response.user.userId)
+		);
 	};
 
 	const handleSelectAll = (event) => {
 		setSelectAll(event.target.checked);
-		setNumberOfUsersToSelect(''); // Clear top N input when using select all
-		
+		setNumberOfUsersToSelect(""); // Clear top N input when using select all
+
 		if (event.target.checked) {
-			const allUserIds = filteredResponses.map(response => response.user.userId);
+			const allUserIds = filteredResponses.map(
+				(response) => response.user.userId
+			);
 			setSelectedUsers(allUserIds);
 		} else {
 			setSelectedUsers([]);
@@ -210,19 +215,19 @@ const ResponseDialog = ({
 		const value = event.target.value;
 		setNumberOfUsersToSelect(value);
 		setSelectAll(false); // Uncheck select all when using top N
-	
+
 		if (value && !isNaN(value)) {
 			const numUsers = Math.min(Number(value), filteredResponses.length);
 			// Sort responses if needed (e.g., by submission date)
-			const sortedResponses = [...filteredResponses].sort((a, b) => 
-				new Date(a.submittedAt) - new Date(b.submittedAt)
+			const sortedResponses = [...filteredResponses].sort(
+				(a, b) => new Date(a.submittedAt) - new Date(b.submittedAt)
 			);
-			
+
 			// Select top N users
 			const topNUsers = sortedResponses
 				.slice(0, numUsers)
-				.map(response => response.user.userId);
-				
+				.map((response) => response.user.userId);
+
 			setSelectedUsers(topNUsers);
 		} else {
 			setSelectedUsers([]);
@@ -233,7 +238,7 @@ const ResponseDialog = ({
 		// Reset selections when responses change
 		setSelectedUsers([]);
 		setSelectAll(false);
-		setNumberOfUsersToSelect('');
+		setNumberOfUsersToSelect("");
 	}, [filteredResponses]);
 
 	return (
@@ -483,16 +488,18 @@ const ResponseDialog = ({
 							</table>
 						</div>
 						{/* Add this after the table div */}
-						{filteredResponses.length > 0 && (
-							<Box sx={{ 
-								mt: 2, 
-								display: 'flex', 
-								justifyContent: 'space-between',
-								alignItems: 'center',
-								flexWrap: 'wrap',
-								gap: 2
-							}}>
-								<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+						{entityType !== "Event" && filteredResponses.length > 0 && (
+							<Box
+								sx={{
+									mt: 2,
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+									flexWrap: "wrap",
+									gap: 2,
+								}}
+							>
+								<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
 									<FormControlLabel
 										control={
 											<Checkbox
@@ -503,7 +510,7 @@ const ResponseDialog = ({
 										}
 										label="Select All"
 									/>
-									<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+									<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
 										<MuiTextField
 											type="number"
 											size="small"
@@ -513,30 +520,42 @@ const ResponseDialog = ({
 											inputProps={{
 												min: 1,
 												max: filteredResponses.length,
-												step: 1
+												step: 1,
 											}}
 											sx={{ width: 120 }}
 											error={numberOfUsersToSelect > filteredResponses.length}
-											helperText={numberOfUsersToSelect > filteredResponses.length ? 
-												`Max ${filteredResponses.length}` : ''}
+											helperText={
+												numberOfUsersToSelect > filteredResponses.length
+													? `Max ${filteredResponses.length}`
+													: ""
+											}
 											onBlur={() => {
-												// Validate and correct the value on blur
 												if (numberOfUsersToSelect > filteredResponses.length) {
-													setNumberOfUsersToSelect(filteredResponses.length.toString());
-													handleNumberOfUsersChange({ 
-														target: { value: filteredResponses.length.toString() } 
+													setNumberOfUsersToSelect(
+														filteredResponses.length.toString()
+													);
+													handleNumberOfUsersChange({
+														target: {
+															value: filteredResponses.length.toString(),
+														},
 													});
 												}
 											}}
 										/>
-										<Typography variant="body2" color="text.secondary">
+										<Typography
+											variant="body2"
+											color="text.secondary"
+										>
 											of {filteredResponses.length}
 										</Typography>
 									</Box>
 								</Box>
 
-								<Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-									<Typography variant="body2" color="text.secondary">
+								<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+									<Typography
+										variant="body2"
+										color="text.secondary"
+									>
 										{selectedUsers.length} users selected
 									</Typography>
 									<Tooltip title="Move selected users to next round">

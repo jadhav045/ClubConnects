@@ -126,7 +126,12 @@ export const ClubResponsiveNavigation = ({ club }) => {
 	);
 };
 
-export const ClubMembers = ({ members, followers }) => {
+export const ClubMembers = ({
+	members,
+	followers,
+	onJoinClub,
+	isFollowing,
+}) => {
 	const [open, setOpen] = useState(false);
 	const [listType, setListType] = useState(null);
 
@@ -136,34 +141,47 @@ export const ClubMembers = ({ members, followers }) => {
 	};
 
 	return (
-		<div className="flex items-center gap-4 p-4">
-			{[
-				{
-					type: "members",
-					label: "Members",
-					count: members.length,
-					icon: Users,
-				},
-				{
-					type: "followers",
-					label: "Followers",
-					count: followers.length,
-					icon: UserPlus,
-				},
-			].map((item) => (
-				<Card
-					key={item.type}
-					className="w-40 text-center p-3 cursor-pointer shadow-md hover:shadow-lg transition-all rounded-xl"
-					onClick={() => openList(item.type)}
-				>
-					<CardContent className="flex flex-col items-center gap-2">
-						<item.icon className="w-6 h-6 text-gray-600" />
-						<h2 className="text-md font-semibold">{item.label}</h2>
-						<p className="text-lg font-bold">{item.count}</p>
-					</CardContent>
-				</Card>
-			))}
+		<div className="flex flex-col items-center gap-6 p-4">
+			{/* Followers and Members Section */}
+			<div className="flex gap-8">
+				{[
+					{
+						type: "followers",
+						label: "Followers",
+						count: followers.length,
+						icon: UserPlus,
+					},
+					{
+						type: "members",
+						label: "Members",
+						count: members.length,
+						icon: Users,
+					},
+				].map((item) => (
+					<div
+						key={item.type}
+						className="flex flex-col items-center cursor-pointer"
+						onClick={() => openList(item.type)}
+					>
+						<h2 className="text-lg font-bold">{item.count}</h2>
+						<p className="text-sm text-gray-500">{item.label}</p>
+					</div>
+				))}
+			</div>
 
+			{/* Join Club Button */}
+			<button
+				onClick={onJoinClub}
+				className={`w-full max-w-xs px-4 py-2 rounded-md font-semibold transition ${
+					isFollowing
+						? "bg-gray-300 text-gray-700"
+						: "bg-blue-600 text-white hover:bg-blue-700"
+				}`}
+			>
+				{isFollowing ? "Following" : "Join Club"}
+			</button>
+
+			{/* Modal for Followers/Members List */}
 			<DialogComponent
 				title={listType === "members" ? "Club Members" : "Followers"}
 				open={open}
@@ -178,7 +196,7 @@ export const ClubMembers = ({ members, followers }) => {
 							<img
 								src={item.userId?.profilePicture || "/default-avatar.png"}
 								alt="Profile"
-								className="w-8 h-8 rounded-full object-cover"
+								className="w-10 h-10 rounded-full object-cover border"
 							/>
 							<div className="text-gray-700">
 								<p className="font-medium">

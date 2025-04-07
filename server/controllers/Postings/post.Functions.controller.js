@@ -31,10 +31,11 @@ export const toggleLikePost = async (req, res) => {
 				type: "TRIP_UPDATE",
 				from: userId,
 				to: [post.authorId],
-				postId: post._id,
-				message: `Your post having ${post._id} has been liked by ${userId}`,
+				entityType: "Post",
+				entityId: post._id,
+				message: `Your post has been liked`,
 			};
-			await addNotification(data);
+			await addNotification(data, userId);
 			// io.emit("notification",`${userId} has liked your post ${post._id}`);
 		}
 

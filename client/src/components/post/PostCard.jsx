@@ -21,7 +21,7 @@ import { useNavigate } from "react-router-dom";
 import { getUser } from "../../routes/apiConfig";
 
 const PostCard = ({ post, currentUser }) => {
-	console.log("post", post);
+	// console.log("post", post);
 	const [showComments, setShowComments] = useState(false);
 	const {
 		showOptions,
@@ -70,10 +70,17 @@ const PostCard = ({ post, currentUser }) => {
 						className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-md cursor-pointer transition duration-200"
 					>
 						<img
-							src={post?.authorId?.profilePicture}
+							src={
+								post?.authorId?.profilePicture ||
+								"https://via.placeholder.com/40"
+							}
 							alt="Profile"
 							className="w-9 h-9 rounded-full object-cover border-2 border-white shadow-sm"
+							onError={(e) => {
+								e.target.src = "https://via.placeholder.com/40";
+							}}
 						/>
+
 						<h4 className="text-sm font-semibold">
 							{post?.authorId?.fullName}
 						</h4>

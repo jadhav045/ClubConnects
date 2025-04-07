@@ -46,12 +46,12 @@ const CollegeSchema = new mongoose.Schema(
 		},
 
 		// Announcements & News
-		announcements: [
-			{
-				type: mongoose.Schema.Types.ObjectId,
-				ref: "Announcement",
-			},
-		],
+		// announcements: [
+		// 	{
+		// 		type: mongoose.Schema.Types.ObjectId,
+		// 		ref: "Announcement",
+		// 	},
+		// ],
 
 		// Performance Tracking
 		performanceMetrics: {
@@ -60,12 +60,7 @@ const CollegeSchema = new mongoose.Schema(
 			facultyStudentRatio: { type: Number, default: 0 },
 		},
 
-		adminDetails: {
-			createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-			createdAt: { type: Date, default: Date.now },
-			updatedAt: { type: Date, default: Date.now },
-		},
-		
+		adminDetails: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
 	},
 	{ timestamps: true }
 );

@@ -17,6 +17,10 @@ import { startEventScheduler } from "./middlewares/startEventSchedular.js";
 import http from "http";
 import { Server } from "socket.io";
 import axios from "axios";
+import upload from "./middlewares/multer.js";
+import cloudinary from "./utils/cloudinary.js";
+import sharp from "sharp";
+import { Readable } from "stream";
 dotenv.config();
 
 const app = express();
@@ -38,6 +42,7 @@ app.use("/opportunities", opportunityRoutes);
 app.use("/post", postRoutes);
 app.use("/discussions", discussionRoutes);
 app.use("/connections", connectionsRoutes);
+
 // Start event scheduler
 startEventScheduler();
 
@@ -55,6 +60,36 @@ const io = new Server(server, {
 	},
 });
 
+app.post("/upload", upload.single("file"), async (req, res) => {
+	try {
+		if (!req.file) {
+			return res.status(400).json({ message: "No file uploaded" });
+		}
+
+		// Optimize image using Sharp
+		const optimizedImageBuffer = await sharp(req.file.buffer)
+			.resize({ width: 800, height: 800, fit: "inside" })
+			.toFormat("jpeg", { quality: 80 })
+			.toBuffer();
+
+		// Upload optimized image to Cloudinary
+		const cloudResponse = await new Promise((resolve, reject) => {
+			const uploadStream = cloudinary.uploader.upload_stream(
+				{ folder: "uploads", resource_type: "image" },
+				(error, result) => {
+					if (error) reject(error);
+					else resolve(result);
+				}
+			);
+			Readable.from(optimizedImageBuffer).pipe(uploadStream); // Convert buffer to readable stream
+		});
+
+		res.json({ fileUrl: cloudResponse.secure_url });
+	} catch (error) {
+		console.error("Upload Error:", error);
+		res.status(500).json({ message: "File upload failed" });
+	}
+});
 // Create HTTP Server
 
 io.on("connection", (socket) => {
