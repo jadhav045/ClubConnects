@@ -18,7 +18,7 @@ export const getNavbarItems = () => {
 		{ name: "Events", href: `/${role}/events` },
 		{ name: "Clubs", href: `/${role}/clubs` },
 		{ name: "Discussions", href: `/${role}/discussions` },
-		{ name: "Resources", href: `/${role}/resources` },
+		// { name: "Resources", href: `/${role}/resources` },
 	];
 };
 
@@ -35,7 +35,7 @@ export const getSidebarItems = () => {
 		{ name: "Feed", href: `/${role}/feed`, icon: "📢" },
 		{ name: "Profile", href: `/${role}/profile/${user._id}`, icon: "👤" },
 		{ name: "Chat", href: `/${role}/chat`, icon: "💬" },
-		{ name: "Notifications", href: `/${role}/notifications`, icon: "🔔" },
+		// { name: "Notifications", href: `/${role}/notifications`, icon: "🔔" },
 	];
 
 	const roleBasedItems = {
@@ -58,7 +58,7 @@ export const getSidebarItems = () => {
 		student: [
 			{ name: "My Clubs", href: "/student/joined/clubs", icon: "🏫" },
 			{ name: "Opportunities", href: "/student/opportunities", icon: "🚀" },
-			{ name: "Mentor By", href: "/student/mentorby", icon: "📘" },
+			// { name: "Mentor By", href: "/student/mentorby", icon: "📘" },
 			...(isPresident
 				? [
 						{
