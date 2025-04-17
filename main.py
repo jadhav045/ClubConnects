@@ -11,4 +11,5 @@ def login():
     data = request.form
     return f"Received username: {data.get('username')}, password: {data.get('password')}"
 
+print("er ")
 app.run(host="0.0.0.0", port=80)  # Expose on all interfaces
