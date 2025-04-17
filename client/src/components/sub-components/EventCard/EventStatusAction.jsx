@@ -2,6 +2,8 @@ import React from "react";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL } from "../../../routes/apiConfig";
+import { motion, AnimatePresence } from "framer-motion"; // Add this import
+import { CheckCircle } from "@mui/icons-material";
 
 const EventStatusAction = ({
 	isRegistered,
@@ -16,79 +18,115 @@ const EventStatusAction = ({
 	isAttendanceOpen,
 	onOpenAttendance,
 }) => {
-	if (isOrganizer && isEventStarted) {
-		return (
-			<button
-				onClick={onOpenAttendance}
-				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-			>
-				{isAttendanceOpen ? "Attendance Open" : "Give Attendance"}
-			</button>
-		);
-	}
+	// Button animation variants
+	const buttonVariants = {
+		initial: { opacity: 0, y: 20 },
+		animate: { opacity: 1, y: 0 },
+		exit: { opacity: 0, y: -20 },
+	};
 
-	if (!isRegistered && isEventClosed) {
-		return (
-			<button
-				disabled
-				className="px-4 py-2 bg-gray-300 text-gray-500 rounded-md cursor-not-allowed"
-			>
-				Registration Closed
-			</button>
-		);
-	}
+	const renderButton = () => {
+		if (isOrganizer && isEventStarted) {
+			return (
+				<motion.div
+					{...buttonVariants}
+					className="flex items-center gap-2"
+				>
+					{isAttendanceOpen ? (
+						<motion.button
+							onClick={onOpenAttendance}
+							className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
+						>
+							<div className="h-2 w-2 bg-white rounded-full animate-pulse" />
+							Attendance Open
+						</motion.button>
+					) : (
+						<motion.div
+							onClick={onOpenAttendance}
+							className="px-4 py-2 bg-gray-200 text-gray-600 rounded-md cursor-pointer flex items-center gap-2"
+						>
+							Attendance Close
+						</motion.div>
+					)}
+				</motion.div>
+			);
+		}
 
-	if (!isRegistered) {
-		return (
-			<button
-				onClick={onRegister}
-				className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
-			>
-				Register Now
-			</button>
-		);
-	}
+		if (!isRegistered && isEventClosed) {
+			return (
+				<motion.div
+					{...buttonVariants}
+					className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-800 rounded-md"
+				>
+					<CheckCircle className="text-gray-600" />
+					Event Done
+				</motion.div>
+			);
+		}
 
-	if (isRegistered && !isEventStarted) {
-		return (
-			<div className="px-4 py-2 bg-green-100 text-green-800 rounded-md">
-				Registered Successfully
-			</div>
-		);
-	}
+		if (!isRegistered) {
+			return (
+				<motion.button
+					{...buttonVariants}
+					onClick={onRegister}
+					className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+				>
+					Register Now
+				</motion.button>
+			);
+		}
 
-	console.log("hasGivenAttendance", hasGivenAttendance);
-	if (isEventStarted && !hasGivenAttendance && isAttendanceOpen) {
-		return (
-			<button
-				onClick={onGiveAttendance}
-				className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-			>
-				Enter Attendance Code
-			</button>
-		);
-	}
+		if (isRegistered && !isEventStarted) {
+			return (
+				<motion.div
+					{...buttonVariants}
+					className="px-4 py-2 bg-green-100 text-green-800 rounded-md"
+				>
+					Registered Successfully
+				</motion.div>
+			);
+		}
 
-	if (hasGivenAttendance && !hasGivenFeedback) {
-		return (
-			<button
-				onClick={onGiveFeedback}
-				className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
-			>
-				Give Feedback
-			</button>
-		);
-	}
+		if (isEventStarted && !hasGivenAttendance && isAttendanceOpen) {
+			return (
+				<motion.button
+					{...buttonVariants}
+					onClick={onGiveAttendance}
+					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
+				>
+					Enter Attendance Code
+				</motion.button>
+			);
+		}
 
-	if (hasGivenFeedback) {
-		return (
-			<span className="px-4 py-2 bg-green-100 text-green-800 rounded-md">
-				Feedback Submitted
-			</span>
-		);
-	}
+		if (hasGivenAttendance && !hasGivenFeedback) {
+			return (
+				<motion.button
+					{...buttonVariants}
+					onClick={onGiveFeedback}
+					className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition"
+				>
+					Give Feedback
+				</motion.button>
+			);
+		}
 
-	return null;
+		if (hasGivenFeedback) {
+			return (
+				<motion.div
+					{...buttonVariants}
+					className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-md"
+				>
+					<CheckCircle className="text-green-600" />
+					Event Done
+				</motion.div>
+			);
+		}
+
+		return null;
+	};
+
+	return <AnimatePresence mode="wait">{renderButton()}</AnimatePresence>;
 };
 
 export const useEventStatus = (event, userId) => {

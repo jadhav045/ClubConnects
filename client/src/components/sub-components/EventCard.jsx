@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { IconButton } from "@mui/material";
+import { Button, IconButton, Typography } from "@mui/material";
 import {
 	MoreVert,
 	Event,
@@ -7,6 +7,7 @@ import {
 	Person,
 	HourglassEmpty,
 	Description,
+	Assessment,
 } from "@mui/icons-material";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -20,9 +21,12 @@ import EventOptionsMenu, {
 	UploadReportModal,
 } from "./EventCard/EventOptionsMenu";
 import EventStatusAction from "./EventCard/EventStatusAction";
-import { AttendanceCodeDialog } from "./EventCard/AttendanceCodeDialog";
+// import { AttendanceCodeDialog } from "./EventCard/AttendanceCodeDialog";
 import { useEventAttendance } from "./hooks/useEventAttendance";
 import FeedbackDialog from "./EventCard/FeedbackDialog";
+import AttendanceListDialog from "./EventCard/AttendantListDialog";
+import EventReport from "./EventCard/EventReport";
+// import AttendanceListDialog from './EventCard/AttendanceListDialog';
 
 const EventCard = ({ event, userId }) => {
 	const navigate = useNavigate();
@@ -44,6 +48,7 @@ const EventCard = ({ event, userId }) => {
 	const [attendanceCode, setAttendanceCode] = useState("");
 	const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
 	const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+	const [showAttendanceList, setShowAttendanceList] = useState(false);
 
 	useEffect(() => {
 		const checkEventStatus = async () => {
@@ -257,6 +262,12 @@ const EventCard = ({ event, userId }) => {
 			fileInputRef.current.click();
 		}
 	};
+	// Add this helper function in the EventCard component
+	const isEventCompleted = () => {
+		const eventEndTime = new Date(event.eventDateTime);
+		const now = new Date();
+		return now > eventEndTime;
+	};
 
 	useEffect(() => {
 		if (event?.participants) {
@@ -283,6 +294,7 @@ const EventCard = ({ event, userId }) => {
 	const handleGiveAttendance = () => {
 		setShowAttendanceDialog(true);
 	};
+	const [showReport, setShowReport] = useState(false);
 
 	return (
 		<div className="rounded-lg border border-gray-200 overflow-hidden shadow-md bg-white max-w-3xl mx-auto hover:shadow-lg transition duration-300">
@@ -330,7 +342,6 @@ const EventCard = ({ event, userId }) => {
 							{formatDateTime(event.eventDateTime)}
 						</span>
 					</div>
-
 					<div className="flex items-center text-gray-700">
 						<LocationOn
 							className="text-indigo-600 mr-2"
@@ -338,20 +349,43 @@ const EventCard = ({ event, userId }) => {
 						/>
 						<span className="text-sm">{event.location}</span>
 					</div>
-					{(userRole === "Faculty" || isOrganizer) && (
-						<div>
-							<button
-								onClick={() =>
-									window.open(
-										"https://res.cloudinary.com/dlhjllguo/raw/upload/v1744477426/uploads/file_wzs4nh",
-										"_blank"
-									)
-								}
-								className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition"
-							>
-								Open Report
-							</button>
+
+					{(userRole === "Faculty" || isOrganizer) && isEventCompleted() ? (
+						<div className="flex items-center text-gray-700 mt-4">
+							<Assessment
+								className="text-indigo-600 mr-2"
+								fontSize="small"
+							/>
+							<div className="flex flex-1 gap-3 items-center">
+								<span className="text-sm">Event Report</span>
+								<div className="flex gap-2 ml-auto">
+									<button
+										onClick={() => window.open(event.report, "_blank")}
+										className="flex items-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors duration-200"
+									>
+										Open Report
+									</button>
+									<button
+										onClick={() => setShowReport(true)}
+										className="flex items-center px-3 py-1.5 text-sm bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors duration-200"
+									>
+										View Stats
+									</button>
+								</div>
+							</div>
 						</div>
+					) : (
+						isOrganizer && (
+							<div className="flex items-center text-gray-700 mt-4">
+								<HourglassEmpty
+									className="text-orange-600 mr-2"
+									fontSize="small"
+								/>
+								<span className="text-sm text-gray-600">
+									Reports available after event completion
+								</span>
+							</div>
+						)
 					)}
 
 					<div className="flex items-center text-gray-700">
@@ -369,7 +403,6 @@ const EventCard = ({ event, userId }) => {
 							</Link>
 						</span>
 					</div>
-
 					{event.registrationDeadline && (
 						<div className="flex items-center text-gray-700">
 							<HourglassEmpty
@@ -404,7 +437,7 @@ const EventCard = ({ event, userId }) => {
 						View Details
 					</button>
 
-					<AttendanceCodeDialog
+					{/* <AttendanceCodeDialog
 						open={showAttendanceDialog}
 						onClose={() => setShowAttendanceDialog(false)}
 						onSubmit={
@@ -414,7 +447,7 @@ const EventCard = ({ event, userId }) => {
 						}
 						isOrganizer={isOrganizer}
 						isLoading={isLoading}
-					/>
+					/> */}
 
 					<EventStatusAction
 						isRegistered={isRegister}
@@ -440,7 +473,15 @@ const EventCard = ({ event, userId }) => {
 				handleViewResponses={handleViewResponses}
 				handleCreateForm={handleCreateForm}
 				handleDialogOpen={handleDialogOpen}
+				onViewAttendance={() => setShowAttendanceList(true)}
 			/>
+
+			{showReport && (
+				<EventReport
+					eventId={event._id}
+					onClose={() => setShowReport(false)}
+				/>
+			)}
 
 			<UploadReportModal
 				show={showModal}
@@ -495,6 +536,12 @@ const EventCard = ({ event, userId }) => {
 				onClose={() => setShowFeedbackDialog(false)}
 				onSubmit={handleSubmitFeedback}
 				isLoading={isFeedbackLoading}
+				event={event}
+			/>
+
+			<AttendanceListDialog
+				open={showAttendanceList}
+				onClose={() => setShowAttendanceList(false)}
 				event={event}
 			/>
 		</div>

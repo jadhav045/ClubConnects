@@ -338,6 +338,7 @@ const DynamicFeedbackForm = ({ entityType, entityId, onClose }) => {
 							xs={12}
 							key={question._id}
 						>
+							{question.questionText}
 							<QuestionWrapper
 								required={question.required}
 								label={question.label}

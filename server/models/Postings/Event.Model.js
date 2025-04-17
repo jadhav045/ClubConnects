@@ -244,4 +244,208 @@ EventSchema.methods.isRegistrationOpen = function () {
 	return this.registrationStatus === "OPEN";
 };
 
+// Simple Report
+EventSchema.methods.generateEventReport = async function () {
+	try {
+		// Safely populate data with error handling
+		const event = await this.populate([
+			{ path: "participants" },
+			{ path: "attendance.user" },
+			{ path: "feedbackForm", populate: "responses" },
+		]).catch((err) => {
+			console.error("Population error:", err);
+			return this;
+		});
+
+		// Safe get function to handle undefined/null values
+		const safe = (fn) => {
+			try {
+				return fn();
+			} catch (e) {
+				return null;
+			}
+		};
+
+		// Basic stats with null checks
+		const stats = {
+			title: this.title || "Untitled Event",
+			eventType: this.eventType || "Not Specified",
+			date: this.eventDateTime || new Date(),
+			location: this.location || "Location not specified",
+
+			registration: {
+				total: this.participants?.length || 0,
+				maxCapacity: this.maxParticipants || "Unlimited",
+				registrationRate: safe(() => {
+					if (!this.maxParticipants) return "No limit set";
+					if (!this.participants?.length) return "0%";
+					return `${(
+						(this.participants.length / this.maxParticipants) *
+						100
+					).toFixed(1)}%`;
+				}),
+			},
+
+			attendance: {
+				total: this.attendance?.length || 0,
+				attendanceRate: safe(() => {
+					if (!this.attendance?.length || !this.participants?.length)
+						return "0%";
+					return `${(
+						(this.attendance.length / this.participants.length) *
+						100
+					).toFixed(1)}%`;
+				}),
+				onTime: safe(() => {
+					if (!this.attendance?.length || !this.eventDateTime) return 0;
+					return this.attendance.filter(
+						(a) => new Date(a?.markedAt || 0) <= new Date(this.eventDateTime)
+					).length;
+				}),
+				late: safe(() => {
+					if (!this.attendance?.length || !this.eventDateTime) return 0;
+					return this.attendance.filter(
+						(a) => new Date(a?.markedAt || 0) > new Date(this.eventDateTime)
+					).length;
+				}),
+			},
+
+			feedback: {
+				form: safe(() => {
+					if (!this.feedbackForm) return "No feedback form attached";
+					const responses = this.feedbackForm.responses?.length || 0;
+					const attendees = this.attendance?.length || 0;
+					return {
+						totalResponses: responses,
+						responseRate: attendees
+							? `${((responses / attendees) * 100).toFixed(1)}%`
+							: "0%",
+					};
+				}),
+			},
+
+			timeline: {
+				created: this.createdAt || "Date not recorded",
+				registrationDeadline: this.registrationDeadline || null,
+				eventDate: this.eventDateTime || "Date not set",
+				status: this.registrationStatus || "Status not set",
+			},
+
+			resources: {
+				totalCount: this.resources?.length || 0,
+				types: safe(() => {
+					if (!this.resources?.length) return {};
+					return this.resources.reduce((acc, resource) => {
+						if (resource?.fileType) {
+							acc[resource.fileType] = (acc[resource.fileType] || 0) + 1;
+						}
+						return acc;
+					}, {});
+				}),
+			},
+
+			schedule: this.schedule?.length > 0 ? this.schedule : null,
+		};
+
+		// Format the report as a string with safe interpolation
+		const report = `
+  Event Report: ${stats.title}
+  ==========================================
+  Type: ${stats.eventType}
+  Date: ${
+		safe(() => new Date(stats.date).toLocaleDateString()) || "Date not set"
+	}
+  Location: ${stats.location}
+  
+  Registration Statistics
+  ---------------------
+  Total Registrations: ${stats.registration.total}
+  Maximum Capacity: ${stats.registration.maxCapacity}
+  Registration Rate: ${stats.registration.registrationRate}
+  
+  Attendance Statistics
+  -------------------
+  Total Attendees: ${stats.attendance.total}
+  Attendance Rate: ${stats.attendance.attendanceRate}
+  On-time Arrivals: ${stats.attendance.onTime}
+  Late Arrivals: ${stats.attendance.late}
+  
+  Feedback Status
+  -------------
+  ${
+		safe(() => {
+			if (typeof stats.feedback.form === "string") return stats.feedback.form;
+			return `Responses Received: ${stats.feedback.form.totalResponses}
+  Response Rate: ${stats.feedback.form.responseRate}`;
+		}) || "Feedback data not available"
+	}
+  
+  Resource Summary
+  --------------
+  Total Resources: ${stats.resources.totalCount}
+  Types: ${JSON.stringify(stats.resources.types || {}, null, 2)}
+  
+  Timeline
+  --------
+  Created: ${
+		safe(() => new Date(stats.timeline.created).toLocaleDateString()) ||
+		"Date not recorded"
+	}
+  Registration Deadline: ${
+		safe(() =>
+			stats.timeline.registrationDeadline
+				? new Date(stats.timeline.registrationDeadline).toLocaleDateString()
+				: "Not set"
+		) || "Not set"
+	}
+  Event Date: ${
+		safe(() => new Date(stats.timeline.eventDate).toLocaleDateString()) ||
+		"Not set"
+	}
+  Current Status: ${stats.timeline.status}
+  
+  ${
+		stats.schedule
+			? `
+  Schedule
+  --------
+  ${
+		safe(() =>
+			stats.schedule
+				.map(
+					(s) =>
+						`${s?.time || "Time not set"}: ${
+							s?.activity || "Activity not specified"
+						}`
+				)
+				.join("\n")
+		) || "Schedule data error"
+	}
+  `
+			: "No schedule provided"
+	}
+  `.trim();
+
+		// Safely update the report field
+		if (report) {
+			this.report = report;
+			await this.save().catch((err) => {
+				console.error("Error saving report:", err);
+			});
+		}
+
+		return {
+			text: report,
+			stats: stats,
+		};
+	} catch (error) {
+		console.error("Error generating report:", error);
+		return {
+			text: "Error generating report",
+			stats: {},
+			error: error.message,
+		};
+	}
+};
+
 export const Event = mongoose.model("Event", EventSchema);

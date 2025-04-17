@@ -1,103 +1,135 @@
 import React from "react";
-import { Menu, MenuItem } from "@mui/material";
-import { ListAlt, Assignment, Feedback, Share } from "@mui/icons-material";
+import { Menu, MenuItem, ListItemIcon, ListItemText, Tooltip } from "@mui/material";
+import { ListAlt, Assignment, Feedback, Share, Lock } from "@mui/icons-material";
+import PeopleIcon from "@mui/icons-material/People";
 
 const EventOptionsMenu = ({
-	anchorEl,
-	handleMenuClose,
-	isOrganizer,
-	event,
-	handleViewResponses,
-	handleCreateForm,
-	handleDialogOpen,
+  anchorEl,
+  handleMenuClose,
+  isOrganizer,
+  event,
+  handleViewResponses,
+  handleCreateForm,
+  handleDialogOpen,
+  onViewAttendance,
 }) => {
-	return (
-		<Menu
-			anchorEl={anchorEl}
-			open={!!anchorEl}
-			onClose={handleMenuClose}
-			PaperProps={{
-				elevation: 3,
-				sx: { borderRadius: "8px", minWidth: "180px" },
-			}}
-		>
-			{isOrganizer && (
-				<>
-					{event.registrationForm ? (
-						<MenuItem
-							onClick={() => handleViewResponses("REGISTRATION")}
-							className="py-2"
-						>
-							<ListAlt
-								fontSize="small"
-								className="mr-3 text-indigo-600"
-							/>
-							<span>View Registrations</span>
-						</MenuItem>
-					) : (
-						<MenuItem
-							onClick={() => handleCreateForm("REGISTRATION")}
-							className="py-2"
-						>
-							<Assignment
-								fontSize="small"
-								className="mr-3 text-indigo-600"
-							/>
-							<span>Create Registration Form</span>
-						</MenuItem>
-					)}
+  // Helper function to check if feedback form should be accessible
+  const canAccessFeedback = () => {
+    return event.registrationForm && event.attendance?.length > 0;
+  };
 
-					{event.feedbackForm ? (
-						<MenuItem
-							onClick={() => handleViewResponses("FEEDBACK")}
-							className="py-2"
-						>
-							<Feedback
-								fontSize="small"
-								className="mr-3 text-indigo-600"
-							/>
-							<span>View Feedback</span>
-						</MenuItem>
-					) : (
-						<MenuItem
-							onClick={() => handleCreateForm("FEEDBACK")}
-							className="py-2"
-						>
-							<Feedback
-								fontSize="small"
-								className="mr-3 text-indigo-600"
-							/>
-							<span>Create Feedback Form</span>
-						</MenuItem>
-					)}
+  // Helper function to check if attendance list should be accessible
+  const canAccessAttendance = () => {
+    return event.registrationForm && event.feedbackForm;
+  };
 
-					<MenuItem
-						onClick={handleDialogOpen}
-						className="py-2"
-					>
-						<Share
-							fontSize="small"
-							className="mr-3 text-indigo-600"
-						/>
-						<span>Send Reminder</span>
-					</MenuItem>
+  const renderMenuItem = (condition, component, disabledMessage) => {
+    if (!condition) {
+      return (
+        <Tooltip title={disabledMessage}>
+          <div>
+            <MenuItem disabled className="opacity-50">
+              {component}
+            </MenuItem>
+          </div>
+        </Tooltip>
+      );
+    }
+    return component;
+  };
 
-					<div className="border-t border-gray-100 my-1"></div>
-				</>
-			)}
+  return (
+    <Menu
+      anchorEl={anchorEl}
+      open={!!anchorEl}
+      onClose={handleMenuClose}
+      PaperProps={{
+        elevation: 3,
+        sx: { borderRadius: "8px", minWidth: "180px" }
+      }}
+    >
+      {isOrganizer && (
+        <>
+          {/* Registration Form Section */}
+          {event.registrationForm ? (
+            <MenuItem
+              onClick={() => handleViewResponses("REGISTRATION")}
+              className="py-2"
+            >
+              <ListAlt fontSize="small" className="mr-3 text-indigo-600" />
+              <span>View Registrations</span>
+            </MenuItem>
+          ) : (
+            <MenuItem
+              onClick={() => handleCreateForm("REGISTRATION")}
+              className="py-2"
+            >
+              <Assignment fontSize="small" className="mr-3 text-indigo-600" />
+              <span>Create Registration Form</span>
+            </MenuItem>
+          )}
 
-			<MenuItem
-				onClick={() => console.log(event.attendance)}
-				className="py-2"
-			>
-				<Share
-					fontSize="small"
-					className="mr-3 text-indigo-600"
-				/>
-				<span>Share Event</span>
-			</MenuItem>
-		</Menu>
-	);
+          {/* Feedback Form Section */}
+          {renderMenuItem(
+            canAccessFeedback(),
+            event.feedbackForm ? (
+              <MenuItem
+                onClick={() => handleViewResponses("FEEDBACK")}
+                className="py-2"
+              >
+                <Feedback fontSize="small" className="mr-3 text-indigo-600" />
+                <span>View Feedback</span>
+              </MenuItem>
+            ) : (
+              <MenuItem
+                onClick={() => handleCreateForm("FEEDBACK")}
+                className="py-2"
+              >
+                <Feedback fontSize="small" className="mr-3 text-indigo-600" />
+                <span>Create Feedback Form</span>
+              </MenuItem>
+            ),
+            "Complete registration process first"
+          )}
+
+          {/* Attendance List Section */}
+          {renderMenuItem(
+            canAccessAttendance(),
+            <MenuItem
+              onClick={() => {
+                handleMenuClose();
+                onViewAttendance();
+              }}
+            >
+              <ListItemIcon>
+                <PeopleIcon fontSize="small" className="text-indigo-600" />
+              </ListItemIcon>
+              <ListItemText>View Attendance</ListItemText>
+            </MenuItem>,
+            "Set up registration and feedback forms first"
+          )}
+
+          <div className="border-t border-gray-100 my-1"></div>
+
+          {/* Reminder Option */}
+          {renderMenuItem(
+            event.registrationForm,
+            <MenuItem onClick={handleDialogOpen} className="py-2">
+              <Share fontSize="small" className="mr-3 text-indigo-600" />
+              <span>Send Reminder</span>
+            </MenuItem>,
+            "Create registration form first"
+          )}
+        </>
+      )}
+
+      {/* Share Event Option - Always Available */}
+      <MenuItem onClick={() => console.log(event.attendance)} className="py-2">
+        <Share fontSize="small" className="mr-3 text-indigo-600" />
+        <span>Share Event</span>
+      </MenuItem>
+    </Menu>
+  );
 };
 
 export const UploadReportModal = ({

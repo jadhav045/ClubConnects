@@ -3,6 +3,7 @@ import uploadImage from "../../utils/fileUpload.js";
 import { User } from "../../models/User.Model.js";
 import mongoose from "mongoose";
 import { StudentAlumni } from "../../models/Roles/StudentAlumni.Model.js";
+import { Event } from "../../models/Postings/Event.Model.js";
 export const getClubs = async (req, res) => {
 	try {
 		console.log("Backend of Clubs");
@@ -313,4 +314,111 @@ export const updateAchievement = async (req, res) => {
 	}
 };
 
+export const getAttendantList = async (req, res) => {
+	try {
+		const { eventId } = req.params;
+
+		const event = await Event.findById(eventId).populate(
+			"attendance.user",
+			"fullName profilePicture email"
+		);
+
+		if (!event) {
+			return res.status(404).json({
+				success: false,
+				message: "Event not found",
+			});
+		}
+
+		return res.json({
+			message: "List fetched successfully",
+			attendantList: event.attendance,
+			success: true,
+		});
+	} catch (error) {
+		console.error("Fetch Attendant List Error:", error);
+		res.status(500).json({ error: "Server Error" });
+	}
+};
+
 // FIle uploading checking
+// ...existing imports...
+// import { Event } from '../models/Postings/Event.Model.js';
+
+// ...existing code...
+
+export const generateEventReport = async (req, res) => {
+	try {
+		const { eventId } = req.params;
+
+		// Find the event and check if exists
+		const event = await Event.findById(eventId);
+		if (!event) {
+			return res.status(404).json({
+				success: false,
+				message: "Event not found",
+			});
+		}
+
+		// Generate the report
+		const report = await event.generateEventReport();
+
+		if (report.error) {
+			return res.status(500).json({
+				success: false,
+				message: "Failed to generate report",
+				error: report.error,
+			});
+		}
+
+		res.status(200).json({
+			success: true,
+			message: "Report generated successfully",
+			report: {
+				text: report.text,
+				stats: report.stats,
+			},
+		});
+	} catch (error) {
+		console.error("Report generation error:", error);
+		res.status(500).json({
+			success: false,
+			message: "Internal server error",
+			error: error.message,
+		});
+	}
+};
+
+// Get saved report without regenerating
+export const getEventReport = async (req, res) => {
+	try {
+		const { eventId } = req.params;
+
+		const event = await Event.findById(eventId);
+		if (!event) {
+			return res.status(404).json({
+				success: false,
+				message: "Event not found",
+			});
+		}
+
+		if (!event.report) {
+			return res.status(404).json({
+				success: false,
+				message: "No report found for this event",
+			});
+		}
+
+		res.status(200).json({
+			success: true,
+			report: event.report,
+		});
+	} catch (error) {
+		console.error("Error fetching report:", error);
+		res.status(500).json({
+			success: false,
+			message: "Failed to fetch report",
+			error: error.message,
+		});
+	}
+};

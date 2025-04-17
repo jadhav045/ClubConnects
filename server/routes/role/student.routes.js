@@ -17,7 +17,10 @@ import {
 	addAchievement,
 	assignRole,
 	deleteAchievement,
+	generateEventReport,
+	getAttendantList,
 	getClubs,
+	getEventReport,
 	getGivenClub,
 	toggleFollowClub,
 	updateAchievement,
@@ -104,4 +107,13 @@ router.post(
 	authMiddleware,
 	checkUserFormStatus
 );
+
+router.get("/events/:eventId/attendant-list", getAttendantList);
+router.post(
+	"/events/:eventId/report/generate",
+	authMiddleware,
+	generateEventReport
+);
+router.get("/events/:eventId/report", authMiddleware, getEventReport);
+
 export default router;

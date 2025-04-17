@@ -3,11 +3,12 @@ import MultiFileUpload from "../../../../MultiFileUpload";
 import ResponseViewer from "../../../form/ResponseVIewer";
 import AvailableAlumniList from "../../mentor/AvailableAlumniList";
 import FileUpload from "../../../../FileUpload";
+import ClubEventsReport from "../../../sub-components/EventCard/ClubEventsReport";
 
 const Chat = () => {
 	return (
 		<div>
-			<FileUpload />
+			<ClubEventsReport />
 		</div>
 	);
 };
